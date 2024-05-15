@@ -49,7 +49,7 @@ public extension StorableModel {
 				}
 			}
 
-			creator = creator.column(column.name, type: type, column.constraints)
+			creator = creator.column(column.name, type: type, constraints)
 		}
 
 		try! await creator.run()

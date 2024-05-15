@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  PersistentStore+Saving.swift
+//
 //
 //  Created by Pat Nakajima on 5/14/24.
 //
@@ -8,12 +8,12 @@
 import Foundation
 import SQLKit
 
-extension PersistentStore {
-	public func save(_ model: Model) async throws {
+public extension PersistentStore {
+	func save(_ model: Model) async throws {
 		_ = try await insert(model, in: container.database)
 	}
 
-	public func save(_ model: inout Model) async throws {
+	func save(_ model: inout Model) async throws {
 		let imodel = model
 
 		let id = try await container.database.withSession { transaction in
@@ -25,7 +25,7 @@ extension PersistentStore {
 		}
 	}
 
-	public func save(_ models: inout [Model]) async throws {
+	func save(_ models: inout [Model]) async throws {
 		let modelsCopy = models
 
 		let result = try await container.database.withSession { transaction in
@@ -40,6 +40,12 @@ extension PersistentStore {
 		}
 
 		models = result
+	}
+
+	func save(_ models: [Model]) async throws {
+		for model in models {
+			_ = try await insert(model, in: container.database)
+		}
 	}
 
 	private func insert(_ model: Model, in database: any SQLDatabase) async throws -> Int? {

@@ -38,11 +38,11 @@ let package = Package(
 			]
 		),
 		.testTarget(
-				name: "ServerDataMacrosTests",
-				dependencies: [
-						"ServerDataMacros",
-						.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
-				]
+			name: "ServerDataMacrosTests",
+			dependencies: [
+				"ServerDataMacros",
+				.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+			]
 		),
 		.testTarget(
 			name: "ServerDataTests",

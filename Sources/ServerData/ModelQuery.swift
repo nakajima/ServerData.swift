@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  ModelQuery.swift
+//
 //
 //  Created by Pat Nakajima on 5/14/24.
 //
@@ -15,40 +15,6 @@ public enum Sort<Model: StorableModel> {
 extension PartialKeyPath where Root: StorableModel {
 	var columnDefinition: ColumnDefinition {
 		Root._$columnsByKeyPath[self]!
-	}
-}
-
-protocol SQLPredicateColumn {
-	var name: String { get }
-}
-
-protocol SQLPredicateValue {
-	var sqlExpression: SQLExpression { get }
-}
-
-protocol SQLPredicateExpression {
-	func operation() -> (String, SQLBinaryOperator, SQLExpression)
-}
-
-extension PredicateExpressions.KeyPath: SQLPredicateColumn where Root.Output: StorableModel {
-	var name: String {
-		// I know.
-		self.keyPath.columnDefinition.name
-	}
-}
-
-extension PredicateExpressions.Equal: SQLPredicateExpression where LHS: SQLPredicateColumn, RHS: SQLPredicateValue {
-	func operation() -> (String, SQLBinaryOperator, SQLExpression) {
-		let columnName = lhs.name
-		let expression = rhs.sqlExpression
-
-		return (columnName, .equal, expression)
-	}
-}
-
-extension PredicateExpressions.Value: SQLPredicateValue where Output: Encodable {
-	var sqlExpression: any SQLKit.SQLExpression {
-		SQLBind(value)
 	}
 }
 
@@ -73,14 +39,12 @@ struct ModelQuery<Model: StorableModel> {
 	func list() async throws -> [Model] {
 		var query = container.database.select().from(Model._$table).columns("*")
 
-		if let expression = predicate?.expression as? SQLPredicateExpression {
-			let (lhs, op, rhs) = expression.operation()
-
-			var serializer = SQLSerializer(database: container.database)
-			rhs.serialize(to: &serializer)
-
-			query = query.where(SQLBinaryExpression(SQLColumn(lhs), op, rhs))
+		if let predicate, let expression = PredicateToSQL(predicate: predicate).expressions() {
+			query = query.where(expression)
 		}
+
+		var sqlSerializer = SQLSerializer(database: container.database)
+		query.select.serialize(to: &sqlSerializer)
 
 		if let limit {
 			query = query.limit(limit)

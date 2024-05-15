@@ -1,8 +1,8 @@
+import SQLKit
 import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
-import SQLKit
 
 struct ColumnOptions {
 	var sqlType: String?
@@ -25,7 +25,8 @@ struct Column {
 			}
 
 			if let label = argument.label, label.text == "type",
-				 let type = argument.expression.as(MemberAccessExprSyntax.self)?.declName.baseName {
+			   let type = argument.expression.as(MemberAccessExprSyntax.self)?.declName.baseName
+			{
 				columnOptions.sqlType = ".\(type)"
 				continue
 			}
@@ -40,8 +41,6 @@ struct Column {
 					// TODO: handle
 					continue
 				}
-
-
 			}
 		}
 
@@ -59,9 +58,10 @@ struct Column {
 
 			var options = ColumnOptions()
 			if let attribute = decl.attributes.first?.as(AttributeSyntax.self),
-				 let attributeIdentifierToken = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name,
-				 attributeIdentifierToken.tokenKind == .identifier("Column"),
-				 let arguments = attribute.arguments {
+			   let attributeIdentifierToken = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name,
+			   attributeIdentifierToken.tokenKind == .identifier("Column"),
+			   let arguments = attribute.arguments
+			{
 				options = extractColumnOptions(from: arguments)
 			}
 
@@ -105,11 +105,11 @@ struct Column {
 
 public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 	public static func expansion(
-		of node: AttributeSyntax,
+		of _: AttributeSyntax,
 		attachedTo declaration: some DeclGroupSyntax,
 		providingExtensionsOf type: some TypeSyntaxProtocol,
-		conformingTo protocols: [TypeSyntax],
-		in context: some MacroExpansionContext
+		conformingTo _: [TypeSyntax],
+		in _: some MacroExpansionContext
 	) throws -> [ExtensionDeclSyntax] {
 		guard let typeName = type.as(IdentifierTypeSyntax.self)?.name.text else {
 			// TODO: When can this fail?
@@ -161,8 +161,8 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 	///
 	public static func expansion(
 		of node: AttributeSyntax,
-		providingMembersOf declaration: some DeclGroupSyntax,
-		in context: some MacroExpansionContext
+		providingMembersOf _: some DeclGroupSyntax,
+		in _: some MacroExpansionContext
 	) throws -> [DeclSyntax] {
 		guard let arguments = node.arguments else {
 			// TODO: Add a diagnostic here
@@ -172,8 +172,9 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 		var tableName: String? = nil
 		for argument in arguments.children(viewMode: .fixedUp) {
 			guard let labeled = argument.as(LabeledExprSyntax.self),
-						let expression = labeled.expression.as(StringLiteralExprSyntax.self),
-						let name = expression.segments.first?.as(StringSegmentSyntax.self)?.content else {
+			      let expression = labeled.expression.as(StringLiteralExprSyntax.self),
+			      let name = expression.segments.first?.as(StringSegmentSyntax.self)?.content
+			else {
 				continue
 			}
 
@@ -188,15 +189,15 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 		return [
 			"""
 			public static let _$table = \(literal: tableName)
-			"""
+			""",
 		]
 	}
 
 	public static func expansion(
-		of node: AttributeSyntax,
-		attachedTo declaration: some DeclGroupSyntax,
-		providingAttributesFor member: some DeclSyntaxProtocol,
-		in context: some MacroExpansionContext
+		of _: AttributeSyntax,
+		attachedTo _: some DeclGroupSyntax,
+		providingAttributesFor _: some DeclSyntaxProtocol,
+		in _: some MacroExpansionContext
 	) throws -> [AttributeSyntax] {
 		[]
 	}
@@ -205,10 +206,10 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 // This macro is just defined so we can have a nicely typed @Column() that takes options, we
 // parse out the interesting stuff in model macro
 public struct ColumnMacro: PeerMacro {
-	static public func expansion(
-		of node: AttributeSyntax,
-		providingPeersOf declaration: some DeclSyntaxProtocol,
-		in context: some MacroExpansionContext
+	public static func expansion(
+		of _: AttributeSyntax,
+		providingPeersOf _: some DeclSyntaxProtocol,
+		in _: some MacroExpansionContext
 	) throws -> [DeclSyntax] {
 		[]
 	}
@@ -218,6 +219,6 @@ public struct ColumnMacro: PeerMacro {
 struct ServerDataMacroPlugin: CompilerPlugin {
 	let providingMacros: [Macro.Type] = [
 		ModelMacro.self,
-		ColumnMacro.self
+		ColumnMacro.self,
 	]
 }

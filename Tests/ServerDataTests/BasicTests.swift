@@ -12,15 +12,14 @@ import SQLKit
 import XCTest
 
 @Model(table: "test_models") struct TestModel: Sendable {
-	var id: Int?
+	@Column(.primaryKey(autoIncrement: true)) var id: Int?
 	@Column(.unique) var name: String
 	var birthday: Date
+	var favoriteColor: String?
 }
 
-class MetaTests: XCTestCase {
-	var store: PersistentStore<TestModel>!
-
-	override func setUp() async throws {
+extension Container {
+	static func test() -> Container {
 		var configuration = MySQLConfiguration(url: ProcessInfo.processInfo.environment["MYSQL_URL"]!)!
 		configuration.database = "server_data_test"
 		configuration.tlsConfiguration?.certificateVerification = .none
@@ -29,7 +28,16 @@ class MetaTests: XCTestCase {
 		let pool = EventLoopGroupConnectionPool(source: source, on: MultiThreadedEventLoopGroup(numberOfThreads: 2))
 		let mysql = pool.database(logger: Logger(label: "test"))
 
-		let container = try Container(name: "server_data_test", database: mysql.sql()) { pool.shutdown() }
+		let container = try! Container(name: "server_data_test", database: mysql.sql()) { pool.shutdown() }
+		return container
+	}
+}
+
+class MetaTests: XCTestCase {
+	var store: PersistentStore<TestModel>!
+
+	override func setUp() async throws {
+		let container = Container.test()
 
 		store = PersistentStore(for: TestModel.self, container: container)
 
@@ -67,9 +75,25 @@ class MetaTests: XCTestCase {
 		XCTAssertEqual(1, result3.count)
 	}
 
+	func testCompoundPredicate() async throws {
+		let a = TestModel(name: "a", birthday: .distantPast, favoriteColor: "blue")
+		let b = TestModel(name: "b", birthday: Date().addingTimeInterval(-1000), favoriteColor: "blue")
+		let c = TestModel(name: "c", birthday: Date().addingTimeInterval(1000), favoriteColor: "green")
+		let d = TestModel(name: "d", birthday: .distantFuture, favoriteColor: "green")
+
+		try await store.save([a, b, c, d])
+
+		let date = Date()
+		let result = try await store.list(where: #Predicate {
+			$0.favoriteColor == "green" && $0.birthday > date
+		})
+
+		XCTAssertEqual(result.count, 2)
+	}
+
 	func testColumns() async throws {
 		let attributes = TestModel._$columnsByKeyPath
-		XCTAssertEqual(3, attributes.count)
+		XCTAssertEqual(4, attributes.count)
 		XCTAssertEqual(attributes[\TestModel.id]!.description, ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []).description)
 		XCTAssertEqual(attributes[\TestModel.name]!.description, ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]).description)
 		XCTAssertEqual(attributes[\TestModel.birthday]!.description, ColumnDefinition(name: "birthday", sqlType: nil, swiftType: Date.self, isOptional: false, constraints: []).description)

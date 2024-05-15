@@ -1,5 +1,5 @@
 //
-//  DB.swift
+//  Container.swift
 //
 //
 //  Created by Pat Nakajima on 5/12/24.
@@ -23,7 +23,7 @@ public actor Container: Sendable {
 		self.database = database
 		self.onClose = onClose
 	}
-	
+
 	// TODO: Make this cross compatible
 	public func tables() -> Set<String> {
 		try! Set(database.raw("SHOW TABLES").all().wait().map { try $0.decode(column: "Tables_in_\(self.name)", as: String.self) })
