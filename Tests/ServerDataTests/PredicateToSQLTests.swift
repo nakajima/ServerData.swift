@@ -34,7 +34,7 @@ class PredicateToSQLTests: XCTestCase {
 
 	func testBasicEquality() {
 		test(line: #line,
-		     #SQLPredicate { $0.name == "Pat" },
+				 #Predicate { $0.name == "Pat" },
 		     SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")))
 	}
 
