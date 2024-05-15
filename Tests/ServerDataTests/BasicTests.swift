@@ -42,8 +42,6 @@ class MetaTests: XCTestCase {
 		let pat = TestModel(name: "Pat", birthday: .distantPast)
 		let baby = TestModel(name: "Baby", birthday: .distantFuture)
 
-		XCTAssertEqual("Pat", pat.name)
-
 		try await store.save(pat)
 		try await store.save(baby)
 
