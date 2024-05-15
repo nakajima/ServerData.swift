@@ -10,6 +10,8 @@ import Foundation
 import SQLKit
 import XCTest
 
+// Not worrying about actually creating an underlying DB for this
+// since all we care about is the struct conforming to StorableModel.
 @Model(table: "predicateToSQLModel") struct PredicateToSQLModel {
 	var id: Int?
 	var name: String
@@ -33,40 +35,50 @@ class PredicateToSQLTests: XCTestCase {
 	}
 
 	func testBasicEquality() {
-		test(line: #line,
-				 #Predicate { $0.name == "Pat" },
-		     SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")))
+		test(
+			line: #line,
+			#Predicate { $0.name == "Pat" },
+			SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat"))
+		)
 	}
 
 	func testNonEquality() {
-		test(line: #line,
-		     #Predicate { $0.name != "Pat" },
-		     SQLBinaryExpression(SQLColumn("name"), .notEqual, SQLBind("Pat")))
+		test(
+			line: #line,
+			#Predicate { $0.name != "Pat" },
+			SQLBinaryExpression(SQLColumn("name"), .notEqual, SQLBind("Pat"))
+		)
 	}
 
 	func testCompound() {
-		test(line: #line,
-		     #Predicate { $0.name == "Pat" && $0.name != "Not Pat" },
-		     SQLBinaryExpression(
-		     	SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")),
-		     	.and,
-		     	SQLBinaryExpression(SQLColumn("name"), .notEqual, SQLBind("Not Pat"))
-		     ))
+		test(
+			line: #line,
+			#Predicate { $0.name == "Pat" && $0.name != "Not Pat" },
+			SQLBinaryExpression(
+				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")),
+				.and,
+				SQLBinaryExpression(SQLColumn("name"), .notEqual, SQLBind("Not Pat"))
+			)
+		)
 	}
 
 	func testCompare() {
-		test(line: #line,
-		     #Predicate { ($0.id ?? -1) > 0 },
-		     SQLBinaryExpression(SQLFunction.coalesce(SQLColumn("id"), SQLBind(-1)), .greaterThan, SQLBind(0)))
+		test(
+			line: #line,
+			#Predicate { ($0.id ?? -1) > 0 },
+			SQLBinaryExpression(SQLFunction.coalesce(SQLColumn("id"), SQLBind(-1)), .greaterThan, SQLBind(0))
+		)
 	}
 
 	func testOr() {
-		test(line: #line,
-		     #Predicate { $0.name == "Pat" || $0.name == "Not Pat" },
-		     .init(
-		     	SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")),
-		     	.or,
-		     	SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Not Pat"))
-		     ))
+		test(
+			line: #line,
+			#Predicate { $0.name == "Pat" || $0.name == "Not Pat" },
+			.init(
+				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")),
+				.or,
+				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Not Pat"))
+			)
+		)
 	}
 }
