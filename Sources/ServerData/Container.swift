@@ -17,7 +17,7 @@ public actor Container: Sendable {
 	let logger: Logger
 	let onClose: () -> Void
 
-	public init(name: String, database: any SQLDatabase, logger: Logger = Logger(label: "envelope DB"), onClose: @escaping () -> Void) throws {
+	public init(name: String, database: any SQLDatabase, logger: Logger = Logger(label: "ServerData Container"), onClose: @escaping () -> Void) throws {
 		self.name = name
 		self.logger = logger
 		self.database = database
