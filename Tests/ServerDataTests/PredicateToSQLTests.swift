@@ -24,16 +24,6 @@ class PredicateToSQLTests: XCTestCase {
 		database = await Container.test().database
 	}
 
-	func test(line: UInt, _ predicate: Predicate<PredicateToSQLModel>, _ expr2: SQLBinaryExpression) {
-		let expr1 = PredicateToSQL(predicate: predicate).expressions()!
-
-		let (sql1, binds1) = database.serialize(expr1)
-		let (sql2, binds2) = database.serialize(expr2)
-
-		XCTAssertEqual(sql1, sql2, line: line)
-		XCTAssertEqual(binds1.debugDescription, binds2.debugDescription, line: line)
-	}
-
 	func testBasicEquality() {
 		test(
 			line: #line,
@@ -80,5 +70,15 @@ class PredicateToSQLTests: XCTestCase {
 				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Not Pat"))
 			)
 		)
+	}
+
+	func test(line: UInt, _ predicate: Predicate<PredicateToSQLModel>, _ expr2: SQLBinaryExpression) {
+		let expr1 = PredicateToSQL(predicate: predicate).expressions()!
+
+		let (sql1, binds1) = database.serialize(expr1)
+		let (sql2, binds2) = database.serialize(expr2)
+
+		XCTAssertEqual(sql1, sql2, line: line)
+		XCTAssertEqual(binds1.debugDescription, binds2.debugDescription, line: line)
 	}
 }
