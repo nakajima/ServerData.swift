@@ -8,6 +8,9 @@
 import Foundation
 import SQLKit
 
+// Contains information about a column. This gets populated from the @Model macro, along
+// with some metadata from the @Column macro which doesn't do anything besides sit there
+// waiting to be parsed by swift-syntax.
 public struct ColumnDefinition: Sendable {
 	public var name: String
 	public var sqlType: SQLDataType?

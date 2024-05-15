@@ -8,6 +8,7 @@
 import Foundation
 import SQLKit
 
+// Create a PersistentStore for your model to be able to save/load from it.
 public struct PersistentStore<Model: StorableModel>: Sendable {
 	public let model: Model.Type
 	public let container: Container

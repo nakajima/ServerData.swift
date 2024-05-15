@@ -4,9 +4,28 @@
 //
 //  Created by Pat Nakajima on 5/14/24.
 //
+//
 
 import Foundation
 import SQLKit
+
+// Converts Foundation.Predicate into SQL expressions. Or tries to anyway.
+struct PredicateToSQL<Model: StorableModel> {
+	let predicate: Predicate<Model>
+
+	func expressions() -> (any SQLExpression)? {
+		guard let expression = predicate.expression as? SQLPredicateExpression else {
+			if #available(macOS 14.4, *) {
+				fatalError("Predicate not supported: \(predicate.debugDescription)")
+			} else {
+				fatalError("Predicate not supported: \(predicate)")
+			}
+		}
+
+		return expression.expression()
+	}
+}
+
 
 protocol SQLPredicateColumn {
 	var name: SQLExpression { get }
@@ -131,18 +150,3 @@ extension PredicateExpressions.Disjunction: SQLPredicateExpression where LHS: SQ
 	}
 }
 
-struct PredicateToSQL<Model: StorableModel> {
-	let predicate: Predicate<Model>
-
-	func expressions() -> (any SQLExpression)? {
-		guard let expression = predicate.expression as? SQLPredicateExpression else {
-			if #available(macOS 14.4, *) {
-				fatalError("Predicate not supported: \(predicate.debugDescription)")
-			} else {
-				fatalError("Predicate not supported: \(predicate)")
-			}
-		}
-
-		return expression.expression()
-	}
-}

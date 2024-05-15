@@ -8,6 +8,8 @@
 import Foundation
 import SQLKit
 
+// Save operations. Most can take an inout parameter which will have its `id` set
+// after the DB saves the record.
 public extension PersistentStore {
 	func save(_ model: Model) async throws {
 		_ = try await insert(model, in: container.database)

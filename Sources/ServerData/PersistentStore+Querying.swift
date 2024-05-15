@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Simple querying operations
 extension PersistentStore {
 	func first(
 		where predicate: Predicate<Model>? = nil,

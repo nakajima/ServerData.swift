@@ -8,12 +8,8 @@
 import Foundation
 import SQLKit
 
-public protocol StorableWrapped {
-	var constraints: [SQLColumnConstraintAlgorithm] { get }
-
-	static func wrappedType() -> Any.Type
-}
-
+// Conformances to help figure out what Swift types should map to
+// which SQL types when the `type` hasn't been specified.
 public protocol StorableAsInt {}
 extension Int: StorableAsInt {}
 
@@ -28,24 +24,3 @@ extension Data: StorableAsData {}
 
 public protocol StorableAsDate {}
 extension Date: StorableAsDate {}
-
-protocol OptionalProtocol {
-	var wrappedOptionalValue: Any? { get }
-}
-
-extension Optional: OptionalProtocol {
-	var wrappedOptionalValue: Any? {
-		switch self {
-		case let .some(w): return w
-		default: return nil
-		}
-	}
-}
-
-extension Optional: StorableWrapped {
-	public static func wrappedType() -> Any.Type {
-		Wrapped.self
-	}
-
-	public var constraints: [SQLColumnConstraintAlgorithm] { [] }
-}

@@ -19,6 +19,7 @@ import XCTest
 }
 
 extension Container {
+	// TODO: Make this support more types of database instead of just mysql (really the whole library)
 	static func test() -> Container {
 		var configuration = MySQLConfiguration(url: ProcessInfo.processInfo.environment["MYSQL_URL"]!)!
 		configuration.database = "server_data_test"
@@ -33,7 +34,7 @@ extension Container {
 	}
 }
 
-class MetaTests: XCTestCase {
+class BasicTests: XCTestCase {
 	var store: PersistentStore<TestModel>!
 
 	override func setUp() async throws {
@@ -93,9 +94,21 @@ class MetaTests: XCTestCase {
 
 	func testColumns() async throws {
 		let attributes = TestModel._$columnsByKeyPath
-		XCTAssertEqual(4, attributes.count)
-		XCTAssertEqual(attributes[\TestModel.id]!.description, ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []).description)
-		XCTAssertEqual(attributes[\TestModel.name]!.description, ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]).description)
-		XCTAssertEqual(attributes[\TestModel.birthday]!.description, ColumnDefinition(name: "birthday", sqlType: nil, swiftType: Date.self, isOptional: false, constraints: []).description)
+		XCTAssertEqual(
+			attributes[\TestModel.id]!.description,
+			ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []).description
+		)
+		XCTAssertEqual(
+			attributes[\TestModel.name]!.description,
+			ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]).description
+		)
+		XCTAssertEqual(
+			attributes[\TestModel.birthday]!.description,
+			ColumnDefinition(name: "birthday", sqlType: nil, swiftType: Date.self, isOptional: false, constraints: []).description
+		)
+		XCTAssertEqual(
+			attributes[\TestModel.favoriteColor]!.description,
+			ColumnDefinition(name: "favoriteColor", sqlType: nil, swiftType: String.self, isOptional: true, constraints: []).description
+		)
 	}
 }

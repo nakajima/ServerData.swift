@@ -9,6 +9,7 @@ struct ColumnOptions {
 	var constraints: [MemberAccessExprSyntax] = []
 }
 
+// Keeps track of column information pulled out of the syntax
 struct Column {
 	var name: String
 	var type: String
@@ -143,22 +144,6 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 		return [extensionDecl]
 	}
 
-	///	Supports
-	///
-	/// 	@Model(table: "people") struct Person {
-	/// 		var id: Int?
-	/// 		var name: String
-	/// 	}
-	///
-	/// Getting expanded to:
-	///
-	/// 	struct Person: StorableModel {
-	/// 		var id: Int?
-	/// 		var name: String
-	///
-	/// 		static let table = "people"
-	/// 	}
-	///
 	public static func expansion(
 		of node: AttributeSyntax,
 		providingMembersOf _: some DeclGroupSyntax,

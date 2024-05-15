@@ -11,6 +11,7 @@ import NIOCore
 import NIOPosix
 import SQLKit
 
+// Wraps the DB.
 public actor Container: Sendable {
 	let name: String
 	let database: any SQLDatabase

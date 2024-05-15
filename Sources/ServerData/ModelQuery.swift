@@ -8,16 +8,22 @@
 import Foundation
 import SQLKit
 
+// Simple sorting type
 public enum Sort<Model: StorableModel> {
 	case ascending(PartialKeyPath<Model>), descending(PartialKeyPath<Model>)
 }
 
+// This is a hack, sure. But I wasn't sure where else to stash column
+// info from the macro and this lets us access column information
+// from within PredicateExpressions when we don't otherwise have
+// access to the Model.
 extension PartialKeyPath where Root: StorableModel {
 	var columnDefinition: ColumnDefinition {
 		Root._$columnsByKeyPath[self]!
 	}
 }
 
+// Handle logic of building queries
 struct ModelQuery<Model: StorableModel> {
 	let predicate: Predicate<Model>?
 	let sort: KeyPathComparator<Model>?

@@ -8,6 +8,7 @@
 import Foundation
 import SQLKit
 
+// Conformace added by the @Model macro
 public protocol StorableModel: Codable, Sendable {
 	static var _$table: String { get }
 	static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] { get }
@@ -18,8 +19,11 @@ public protocol StorableModel: Codable, Sendable {
 }
 
 public extension StorableModel {
+	// This is defined to get around macro expansion ordering issues. We should never
+	// see this actually happen.
 	static var _$table: String { fatalError("should have been expanded by the macro") }
 
+	// This is nice for quick prototyping tho I probably wouldn't do it in production.
 	static func create(in database: any SQLDatabase) async throws {
 		var creator = database.create(table: _$table)
 
