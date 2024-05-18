@@ -18,18 +18,26 @@ import XCTest
 	var favoriteColor: String?
 }
 
+extension EventLoopGroupConnectionPool: @unchecked Sendable { }
+
 extension Container {
 	// TODO: Make this support more types of database instead of just mysql (really the whole library)
 	static func test() -> Container {
-		var configuration = MySQLConfiguration(url: ProcessInfo.processInfo.environment["MYSQL_URL"]!)!
-		configuration.database = "server_data_test"
+		let databaseName = "server_data_test"
+		var configuration = MySQLConfiguration(
+			url: ProcessInfo.processInfo.environment["MYSQL_URL"]!
+		)!
+
+		configuration.database = databaseName
+
+		// Probably
 		configuration.tlsConfiguration?.certificateVerification = .none
 
 		let source = MySQLConnectionSource(configuration: configuration)
 		let pool = EventLoopGroupConnectionPool(source: source, on: MultiThreadedEventLoopGroup(numberOfThreads: 2))
 		let mysql = pool.database(logger: Logger(label: "test"))
 
-		let container = try! Container(name: "server_data_test", database: mysql.sql()) { pool.shutdown() }
+		let container = try! Container(name: databaseName, database: mysql.sql(), shutdown: { pool.shutdown() })
 		return container
 	}
 }

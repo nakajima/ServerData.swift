@@ -16,13 +16,13 @@ public actor Container: Sendable {
 	let name: String
 	let database: any SQLDatabase
 	let logger: Logger
-	let onClose: () -> Void
+	let shutdown: @Sendable () -> Void
 
-	public init(name: String, database: any SQLDatabase, logger: Logger = Logger(label: "ServerData Container"), onClose: @escaping () -> Void) throws {
+	public init(name: String, database: any SQLDatabase, logger: Logger = Logger(label: "ServerData Container"), shutdown: @Sendable @escaping () -> Void) throws {
 		self.name = name
 		self.logger = logger
 		self.database = database
-		self.onClose = onClose
+		self.shutdown = shutdown
 	}
 
 	// TODO: Make this cross compatible
@@ -51,6 +51,6 @@ public actor Container: Sendable {
 	}
 
 	deinit {
-		onClose()
+		shutdown()
 	}
 }

@@ -4,6 +4,10 @@
 import CompilerPluginSupport
 import PackageDescription
 
+let swiftSettings: [SwiftSetting] = [
+	.enableExperimentalFeature("StrictConcurrency")
+]
+
 let package = Package(
 	name: "ServerData",
 	platforms: [.macOS(.v14)],
@@ -26,7 +30,8 @@ let package = Package(
 				.product(name: "SQLKit", package: "sql-kit"),
 				.product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
 				.product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
-			]
+			],
+			swiftSettings: swiftSettings
 		),
 		// Targets are the basic building blocks of a package, defining a module or a test suite.
 		// Targets can depend on other targets in this package and products from dependencies.
@@ -35,21 +40,24 @@ let package = Package(
 			dependencies: [
 				"ServerDataMacros",
 				.product(name: "SQLKit", package: "sql-kit"),
-			]
+			],
+			swiftSettings: swiftSettings
 		),
 		.testTarget(
 			name: "ServerDataMacrosTests",
 			dependencies: [
 				"ServerDataMacros",
 				.product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
-			]
+			],
+			swiftSettings: swiftSettings
 		),
 		.testTarget(
 			name: "ServerDataTests",
 			dependencies: [
 				"ServerData",
 				.product(name: "MySQLKit", package: "mysql-kit"),
-			]
+			],
+			swiftSettings: swiftSettings
 		),
 	]
 )

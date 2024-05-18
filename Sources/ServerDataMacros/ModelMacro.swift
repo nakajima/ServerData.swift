@@ -104,9 +104,37 @@ struct Column {
 	}
 }
 
-public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
+public struct ModelMacro: ExtensionMacro {
+	static func extractTableName(from node: AttributeSyntax) -> DeclSyntax? {
+		guard let arguments = node.arguments else {
+			// TODO: Add a diagnostic here
+			return nil
+		}
+
+		var tableName: String? = nil
+		for argument in arguments.children(viewMode: .fixedUp) {
+			guard let labeled = argument.as(LabeledExprSyntax.self),
+						let expression = labeled.expression.as(StringLiteralExprSyntax.self),
+						let name = expression.segments.first?.as(StringSegmentSyntax.self)?.content
+			else {
+				continue
+			}
+
+			tableName = name.text
+		}
+
+		guard let tableName else {
+			// TODO: Add a diagnostic here
+			return nil
+		}
+
+		return """
+		static let _$table = \(literal: tableName)
+		"""
+	}
+
 	public static func expansion(
-		of _: AttributeSyntax,
+		of node: AttributeSyntax,
 		attachedTo declaration: some DeclGroupSyntax,
 		providingExtensionsOf type: some TypeSyntaxProtocol,
 		conformingTo _: [TypeSyntax],
@@ -114,6 +142,11 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 	) throws -> [ExtensionDeclSyntax] {
 		guard let typeName = type.as(IdentifierTypeSyntax.self)?.name.text else {
 			// TODO: When can this fail?
+			return []
+		}
+
+		guard let table = extractTableName(from: node) else {
+			// TODO: Add a diagnostic
 			return []
 		}
 
@@ -129,6 +162,7 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 		let sendableExtension: DeclSyntax =
 			"""
 			extension \(type.trimmed): StorableModel {
+				\(raw: table.description)
 				static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
 					[
 						\(raw: attributeDefinitions.map(\.description).joined(separator: ",\n"))
@@ -142,49 +176,6 @@ public struct ModelMacro: MemberAttributeMacro, MemberMacro, ExtensionMacro {
 		}
 
 		return [extensionDecl]
-	}
-
-	public static func expansion(
-		of node: AttributeSyntax,
-		providingMembersOf _: some DeclGroupSyntax,
-		in _: some MacroExpansionContext
-	) throws -> [DeclSyntax] {
-		guard let arguments = node.arguments else {
-			// TODO: Add a diagnostic here
-			return []
-		}
-
-		var tableName: String? = nil
-		for argument in arguments.children(viewMode: .fixedUp) {
-			guard let labeled = argument.as(LabeledExprSyntax.self),
-			      let expression = labeled.expression.as(StringLiteralExprSyntax.self),
-			      let name = expression.segments.first?.as(StringSegmentSyntax.self)?.content
-			else {
-				continue
-			}
-
-			tableName = name.text
-		}
-
-		guard let tableName else {
-			// TODO: Add a diagnostic here
-			return []
-		}
-
-		return [
-			"""
-			public static let _$table = \(literal: tableName)
-			""",
-		]
-	}
-
-	public static func expansion(
-		of _: AttributeSyntax,
-		attachedTo _: some DeclGroupSyntax,
-		providingAttributesFor _: some DeclSyntaxProtocol,
-		in _: some MacroExpansionContext
-	) throws -> [AttributeSyntax] {
-		[]
 	}
 }
 

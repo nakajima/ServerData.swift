@@ -9,6 +9,8 @@
 import Foundation
 import SQLKit
 
+extension SQLBind: Sendable { }
+
 // Converts Foundation.Predicate into SQL expressions. Or tries to anyway.
 struct PredicateToSQL<Model: StorableModel> {
 	let predicate: Predicate<Model>

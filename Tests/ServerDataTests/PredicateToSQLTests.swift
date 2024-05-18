@@ -15,6 +15,7 @@ import XCTest
 @Model(table: "predicateToSQLModel") struct PredicateToSQLModel {
 	var id: Int?
 	var name: String
+	var age: Int
 }
 
 class PredicateToSQLTests: XCTestCase {
@@ -28,7 +29,7 @@ class PredicateToSQLTests: XCTestCase {
 		test(
 			line: #line,
 			#Predicate { $0.name == "Pat" },
-			SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat"))
+			"`name` = ?", ["Pat"]
 		)
 	}
 
@@ -36,7 +37,7 @@ class PredicateToSQLTests: XCTestCase {
 		test(
 			line: #line,
 			#Predicate { $0.name != "Pat" },
-			SQLBinaryExpression(SQLColumn("name"), .notEqual, SQLBind("Pat"))
+			"`name` <> ?", ["Pat"]
 		)
 	}
 
@@ -44,11 +45,7 @@ class PredicateToSQLTests: XCTestCase {
 		test(
 			line: #line,
 			#Predicate { $0.name == "Pat" && $0.name != "Not Pat" },
-			SQLBinaryExpression(
-				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")),
-				.and,
-				SQLBinaryExpression(SQLColumn("name"), .notEqual, SQLBind("Not Pat"))
-			)
+			"`name` = ? AND `name` <> ?", ["Pat", "Not Pat"]
 		)
 	}
 
@@ -56,7 +53,7 @@ class PredicateToSQLTests: XCTestCase {
 		test(
 			line: #line,
 			#Predicate { ($0.id ?? -1) > 0 },
-			SQLBinaryExpression(SQLFunction.coalesce(SQLColumn("id"), SQLBind(-1)), .greaterThan, SQLBind(0))
+			"COALESCE(`id`, ?) > ?", [-1, 0]
 		)
 	}
 
@@ -64,11 +61,15 @@ class PredicateToSQLTests: XCTestCase {
 		test(
 			line: #line,
 			#Predicate { $0.name == "Pat" || $0.name == "Not Pat" },
-			.init(
-				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Pat")),
-				.or,
-				SQLBinaryExpression(SQLColumn("name"), .equal, SQLBind("Not Pat"))
-			)
+			"`name` = ? OR `name` = ?", ["Pat", "Not Pat"]
+		)
+	}
+
+	func testTestNested() {
+		test(
+			line: #line,
+			#Predicate { $0.age > 30 && ($0.name == "Pat" || $0.name == "Not Pat") },
+			"`age` > ? AND `name` = ? OR `name` = ?", [30, "Pat", "Not Pat"]
 		)
 	}
 
@@ -80,5 +81,14 @@ class PredicateToSQLTests: XCTestCase {
 
 		XCTAssertEqual(sql1, sql2, line: line)
 		XCTAssertEqual(binds1.debugDescription, binds2.debugDescription, line: line)
+	}
+
+	func test(line: UInt, _ predicate: Predicate<PredicateToSQLModel>, _ sql: String, _ binds: [Any]) {
+		let expr1 = PredicateToSQL(predicate: predicate).expressions()!
+
+		let (sql1, binds1) = database.serialize(expr1)
+
+		XCTAssertEqual(sql1, sql, line: line)
+		XCTAssertEqual(binds1.debugDescription, binds.debugDescription, line: line)
 	}
 }

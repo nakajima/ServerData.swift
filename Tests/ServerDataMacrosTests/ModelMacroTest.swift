@@ -26,28 +26,45 @@ import XCTest
 			assertMacroExpansion(
 				"""
 				@Model(table: "people") struct Person {
+					// We assume this is the primary key since it's named `id`
+					// so it gets a PRIMARY KEY AUTO_INCREMENT. Could maybe this
+					// configurable at some point…
 					var id: Int?
+
+					// Adds a `NOT NULL` to the `age` column
+					var age: Int
+
+					// Adds a unique index (courtesy of SQLKit)
 					@Column(.unique) var name: String
-					var age: Date
+
+					// We can store this string as a blob for some reason
 					@Column(type: .blob) var about: String?
 				}
 				""",
 				expandedSource: """
 				struct Person {
+					// We assume this is the primary key since it's named `id`
+					// so it gets a PRIMARY KEY AUTO_INCREMENT. Could maybe this
+					// configurable at some point…
 					var id: Int?
-					@Column(.unique) var name: String
-					var age: Date
-					@Column(type: .blob) var about: String?
 
-					public static let _$table = "people"
+					// Adds a `NOT NULL` to the `age` column
+					var age: Int
+
+					// Adds a unique index (courtesy of SQLKit)
+					@Column(.unique) var name: String
+
+					// We can store this string as a blob for some reason
+					@Column(type: .blob) var about: String?
 				}
 
 				extension Person: StorableModel {
+					static let _$table = "people"
 					static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
 						[
 							\\Person.id: ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
+							\\Person.age: ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),
 							\\Person.name: ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]),
-							\\Person.age: ColumnDefinition(name: "age", sqlType: nil, swiftType: Date.self, isOptional: false, constraints: []),
 							\\Person.about: ColumnDefinition(name: "about", sqlType: .blob, swiftType: String.self, isOptional: true, constraints: [])
 						]
 					}

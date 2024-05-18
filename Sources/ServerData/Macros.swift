@@ -4,9 +4,7 @@
 import Foundation
 import SQLKit
 
-@attached(memberAttribute)
-@attached(member, names: named(_$table))
-@attached(extension, conformances: StorableModel, names: named(requirement), named(_$columnsByKeyPath))
+@attached(extension, conformances: StorableModel, names: named(requirement), named(_$table), named(_$columnsByKeyPath))
 public macro Model(table: String) = #externalMacro(module: "ServerDataMacros", type: "ModelMacro")
 
 @attached(peer)
