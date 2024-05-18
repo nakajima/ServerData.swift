@@ -17,6 +17,14 @@ public struct ColumnDefinition: Sendable {
 	public var swiftType: Any.Type
 	public var isOptional: Bool
 	public var constraints: [SQLColumnConstraintAlgorithm]
+
+	public init(name: String, sqlType: SQLDataType? = nil, swiftType: Any.Type, isOptional: Bool, constraints: [SQLColumnConstraintAlgorithm]) {
+		self.name = name
+		self.sqlType = sqlType
+		self.swiftType = swiftType
+		self.isOptional = isOptional
+		self.constraints = constraints
+	}
 }
 
 extension ColumnDefinition: CustomStringConvertible {
