@@ -8,7 +8,16 @@
 import Foundation
 
 // Simple querying operations
-extension PersistentStore {
+public extension PersistentStore {
+	func find(id: Int?) async throws -> Model? {
+		guard let id else { return nil }
+
+		return try await ModelQuery(
+			container: container,
+			predicate: #Predicate<Model> { $0.id == id }
+		).list().first
+	}
+
 	func first(
 		where predicate: Predicate<Model>? = nil,
 		sort: KeyPathComparator<Model>? = nil
