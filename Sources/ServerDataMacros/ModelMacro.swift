@@ -161,9 +161,9 @@ public struct ModelMacro: ExtensionMacro {
 
 		let sendableExtension: DeclSyntax =
 			"""
-			public extension \(type.trimmed): StorableModel {
-				\(raw: table.description)
-				static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
+			extension \(type.trimmed): StorableModel {
+				public \(raw: table.description)
+				public static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
 					[
 						\(raw: attributeDefinitions.map(\.description).joined(separator: ",\n"))
 					]

@@ -59,8 +59,8 @@ import XCTest
 				}
 
 				extension Person: StorableModel {
-					static let _$table = "people"
-					static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
+					public static let _$table = "people"
+					public static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
 						[
 							\\Person.id: ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
 							\\Person.age: ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),
