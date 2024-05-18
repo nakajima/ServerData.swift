@@ -163,7 +163,7 @@ public struct ModelMacro: ExtensionMacro {
 			"""
 			extension \(type.trimmed): StorableModel {
 				public \(raw: table.description)
-				public static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
+				public static var _$columnsByKeyPath: [PartialKeyPath<Self>: ColumnDefinition] {
 					[
 						\(raw: attributeDefinitions.map(\.description).joined(separator: ",\n"))
 					]

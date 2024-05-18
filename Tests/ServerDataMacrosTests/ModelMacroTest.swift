@@ -29,16 +29,16 @@ import XCTest
 					// We assume this is the primary key since it's named `id`
 					// so it gets a PRIMARY KEY AUTO_INCREMENT. Could maybe this
 					// configurable at some point…
-					var id: Int?
+					public var id: Int?
 
 					// Adds a `NOT NULL` to the `age` column
-					var age: Int
+					public var age: Int
 
 					// Adds a unique index (courtesy of SQLKit)
-					@Column(.unique) var name: String
+					@Column(.unique) public var name: String
 
 					// We can store this string as a blob for some reason
-					@Column(type: .blob) var about: String?
+					@Column(type: .blob) public var about: String?
 				}
 				""",
 				expandedSource: """
@@ -46,21 +46,21 @@ import XCTest
 					// We assume this is the primary key since it's named `id`
 					// so it gets a PRIMARY KEY AUTO_INCREMENT. Could maybe this
 					// configurable at some point…
-					var id: Int?
+					public var id: Int?
 
 					// Adds a `NOT NULL` to the `age` column
-					var age: Int
+					public var age: Int
 
 					// Adds a unique index (courtesy of SQLKit)
-					@Column(.unique) var name: String
+					@Column(.unique) public var name: String
 
 					// We can store this string as a blob for some reason
-					@Column(type: .blob) var about: String?
+					@Column(type: .blob) public var about: String?
 				}
 
 				extension Person: StorableModel {
 					public static let _$table = "people"
-					public static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] {
+					public static var _$columnsByKeyPath: [PartialKeyPath<Self>: ColumnDefinition] {
 						[
 							\\Person.id: ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
 							\\Person.age: ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),

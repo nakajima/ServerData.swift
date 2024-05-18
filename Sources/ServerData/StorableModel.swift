@@ -11,7 +11,7 @@ import SQLKit
 // Conformace added by the @Model macro
 public protocol StorableModel: Codable, Sendable {
 	static var _$table: String { get }
-	static var _$columnsByKeyPath: [AnyHashable: ColumnDefinition] { get }
+	static var _$columnsByKeyPath: [PartialKeyPath<Self>: ColumnDefinition] { get }
 
 	var id: Int? { get set }
 
