@@ -9,10 +9,9 @@ import Foundation
 import Logging
 import NIOCore
 import NIOPosix
-import SQLKit
+@preconcurrency import SQLKit
 
 #if canImport(SQLiteKit)
-import SQLiteKit
 extension SQLDialect {
 	func showTables(in database: any SQLDatabase, name: String) -> Set<String> {
 		try! Set(database.select().column("name").from("sqlite_master").where("type", .equal, "table").all().wait().map { try $0.decode(column: "name", as: String.self) })
@@ -31,7 +30,6 @@ extension SQLDialect {
 #endif
 
 #if canImport(MySQLKit)
-import MySQLKit
 extension SQLDialect {
 	func showTables(in database: any SQLDatabase, name: String) -> Set<String> {
 		try! Set(database.raw("SHOW TABLES").all().wait().map { try $0.decode(column: "Tables_in_\(name)", as: String.self) })
