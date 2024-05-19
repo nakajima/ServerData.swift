@@ -20,7 +20,7 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url: "https://github.com/vapor/sql-kit", branch: "main"),
-		.package(url: "https://github.com/vapor/mysql-kit", branch: "main"),
+		.package(url: "https://github.com/vapor/sqlite-kit", branch: "main"),
 		.package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
 	],
 	targets: [
@@ -55,7 +55,7 @@ let package = Package(
 			name: "ServerDataTests",
 			dependencies: [
 				"ServerData",
-				.product(name: "MySQLKit", package: "mysql-kit"),
+				.product(name: "SQLiteKit", package: "sqlite-kit"),
 			],
 			swiftSettings: swiftSettings
 		),

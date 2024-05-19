@@ -54,6 +54,14 @@ public extension PersistentStore {
 		let tableExists = await container.tables().contains(Model._$table)
 		precondition(tableExists, "\(model) not known to database!")
 
+		if database.dialect.supportsReturning {
+			return try await insertWithReturning(model, in: database)
+		} else {
+			return try await insertWithLastInsertID(model, in: database)
+		}
+	}
+
+	private func insertWithLastInsertID(_ model: Model, in database: any SQLDatabase) async throws -> Int? {
 		try await database.insert(into: Model._$table)
 			.ignoringConflicts()
 			.model(model, with: .init(nilEncodingStrategy: .asNil))
@@ -66,5 +74,14 @@ public extension PersistentStore {
 			let id = try row?.decode(column: "LAST_INSERT_ID()", as: Int.self)
 			return id
 		}
+	}
+
+	private func insertWithReturning(_ model: Model, in database: any SQLDatabase) async throws -> Int? {
+		return try await database.insert(into: Model._$table)
+			.ignoringConflicts()
+			.model(model, with: .init(nilEncodingStrategy: .asNil))
+			.returning("id")
+			.first()?
+			.decode(column: "id", as: Int.self)
 	}
 }

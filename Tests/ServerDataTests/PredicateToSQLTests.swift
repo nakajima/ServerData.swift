@@ -106,7 +106,20 @@ class PredicateToSQLTests: XCTestCase {
 
 		let (sql1, binds1) = database.serialize(expr1)
 
+		let sql = dialectize(sql: sql)
+
 		XCTAssertEqual(sql1, sql, line: line)
 		XCTAssertEqual(binds1.debugDescription, binds.debugDescription, line: line)
+	}
+
+	// I wrote the tests with MySQL syntax so this function is sort of a hack to try to make
+	// sure they work in whatever dialect
+	func dialectize(sql: String) -> String {
+		var i = 0
+		return sql.replacing(#/\?/#) { match in
+			i += 1
+			return database.serialize(database.dialect.bindPlaceholder(at: i)).sql
+		}
+		.replacing("`", with: database.serialize(database.dialect.identifierQuote).sql)
 	}
 }

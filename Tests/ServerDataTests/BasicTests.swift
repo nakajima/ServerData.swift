@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MySQLKit
+import SQLiteKit
 @testable import ServerData
 import SQLKit
 import XCTest
@@ -21,23 +21,25 @@ import XCTest
 extension EventLoopGroupConnectionPool: @unchecked Sendable { }
 
 extension Container {
-	// TODO: Make this support more types of database instead of just mysql (really the whole library)
 	static func test() -> Container {
-		let databaseName = "server_data_test"
-		var configuration = MySQLConfiguration(
-			url: ProcessInfo.processInfo.environment["MYSQL_URL"]!
-		)!
-
-		configuration.database = databaseName
-
-		// Probably
-		configuration.tlsConfiguration?.certificateVerification = .none
-
-		let source = MySQLConnectionSource(configuration: configuration)
+		// Configure our SQLite database so we can create a ServerData Container
+		let config = SQLiteConfiguration(storage: .memory)
+		let source = SQLiteConnectionSource(configuration: config)
 		let pool = EventLoopGroupConnectionPool(source: source, on: MultiThreadedEventLoopGroup(numberOfThreads: 2))
-		let mysql = pool.database(logger: Logger(label: "test"))
+		let connection = try! source.makeConnection(logger: Logger(label: "test"), on: pool.eventLoopGroup.next()).wait()
+		let database = connection.sql()
 
-		let container = try! Container(name: databaseName, database: mysql.sql(), shutdown: { pool.shutdown() })
+		// Create the Container so we can use it to create a PersistentStore for
+		// our Person model
+		let container = try! Container(
+			name: "test",
+			database: database,
+			shutdown: {
+				pool.shutdown()
+				try! connection.close().wait()
+			}
+		)
+
 		return container
 	}
 }
