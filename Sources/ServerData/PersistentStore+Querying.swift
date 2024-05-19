@@ -9,13 +9,13 @@ import Foundation
 
 // Simple querying operations
 public extension PersistentStore {
-	func find(id: Int?) async throws -> Model? {
-		guard let id else { return nil }
-
-		return try await ModelQuery(
-			container: container,
-			predicate: #Predicate<Model> { $0.id == id }
-		).list().first
+	func find(id: Int) async throws -> Model? {
+		return try await container.database
+			.select()
+			.from(Model._$table)
+			.columns("*")
+			.where("id", .equal, id)
+			.first(decoding: Model.self)
 	}
 
 	func first(

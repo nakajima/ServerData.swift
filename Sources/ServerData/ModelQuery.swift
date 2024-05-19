@@ -19,7 +19,11 @@ public enum Sort<Model: StorableModel> {
 // access to the Model.
 extension PartialKeyPath where Root: StorableModel {
 	var columnDefinition: ColumnDefinition {
-		Root._$columnsByKeyPath[self]!
+		guard let columnDef = Root._$columnsByKeyPath[self] else {
+			fatalError("failed to find column definition from keyPath: \(self.debugDescription)")
+		}
+
+		return columnDef
 	}
 }
 
