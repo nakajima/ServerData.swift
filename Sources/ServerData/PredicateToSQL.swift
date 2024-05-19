@@ -11,6 +11,16 @@ import SQLKit
 
 extension SQLBind: Sendable { }
 
+protocol OptionalWrapper {
+	associatedtype Wrapped: Encodable
+
+	var unwrapped: Wrapped { get }
+}
+
+extension Optional: OptionalWrapper where Wrapped: Encodable {
+	var unwrapped: Wrapped { self.unsafelyUnwrapped }
+}
+
 // Converts Foundation.Predicate into SQL expressions. Or tries to anyway.
 struct PredicateToSQL<Model: StorableModel> {
 	let predicate: Predicate<Model>
@@ -30,6 +40,7 @@ struct PredicateToSQL<Model: StorableModel> {
 
 
 protocol SQLPredicateColumn {
+	// The column name
 	var name: SQLExpression { get }
 }
 
@@ -53,7 +64,19 @@ extension PredicateExpressions.KeyPath: SQLPredicateColumn where Root.Output: St
 	}
 }
 
+extension PredicateExpressions.ForcedUnwrap: SQLPredicateColumn where Inner: SQLPredicateColumn {
+	var name: any SQLExpression {
+		inner.name
+	}
+}
+
 // MARK: Predicate values
+
+extension PredicateExpressions.ForcedUnwrap: SQLPredicateValue where Inner: SQLPredicateValue {
+	var sqlExpression: any SQLKit.SQLExpression {
+		return inner.sqlExpression
+	}
+}
 
 extension PredicateExpressions.UnaryMinus: SQLPredicateValue where Wrapped.Output: SignedNumeric {
 	var sqlExpression: any SQLExpression {
@@ -70,7 +93,13 @@ extension PredicateExpressions.UnaryMinus: SQLPredicateValue where Wrapped.Outpu
 
 extension PredicateExpressions.Value: SQLPredicateValue where Output: Encodable {
 	var sqlExpression: any SQLExpression {
-		SQLBind(value)
+		let val = if let optionalValue = value as? any OptionalWrapper {
+			optionalValue.unwrapped
+		} else {
+			value
+		}
+
+		return SQLBind(val)
 	}
 }
 

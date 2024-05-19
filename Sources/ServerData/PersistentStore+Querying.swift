@@ -9,7 +9,9 @@ import Foundation
 
 // Simple querying operations
 public extension PersistentStore {
-	func find(id: Int) async throws -> Model? {
+	func find(id: Int?) async throws -> Model? {
+		guard let id else { return nil }
+
 		return try await container.database
 			.select()
 			.from(Model._$table)

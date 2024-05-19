@@ -73,6 +73,24 @@ class PredicateToSQLTests: XCTestCase {
 		)
 	}
 
+	func testForceUnwrapColumn() {
+		test(
+			line: #line,
+			#Predicate { $0.id! > 30 },
+			"`id` > ?", [30]
+		)
+	}
+
+	func testForceUnwrapValue() {
+		let age: Int? = 30
+
+		test(
+			line: #line,
+			#Predicate { $0.age > age! },
+			"`age` > ?", [30]
+		)
+	}
+
 	func test(line: UInt, _ predicate: Predicate<PredicateToSQLModel>, _ expr2: SQLBinaryExpression) {
 		let expr1 = PredicateToSQL(predicate: predicate).expressions()!
 
