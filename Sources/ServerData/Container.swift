@@ -12,39 +12,39 @@ import NIOPosix
 @preconcurrency import SQLKit
 
 #if canImport(SQLiteKit)
-extension SQLDialect {
-	func showTables(in database: any SQLDatabase, name: String) -> Set<String> {
-		try! Set(database.select().column("name").from("sqlite_master").where("type", .equal, "table").all().wait().map { try $0.decode(column: "name", as: String.self) })
-	}
-
-	func truncate(in database: any SQLDatabase, name: String) async throws {
-		if !name.contains("test") {
-			fatalError("cannot truncate non-test DB")
+	extension SQLDialect {
+		func showTables(in database: any SQLDatabase, name _: String) -> Set<String> {
+			try! Set(database.select().column("name").from("sqlite_master").where("type", .equal, "table").all().wait().map { try $0.decode(column: "name", as: String.self) })
 		}
 
-		for table in showTables(in: database, name: name) {
-			try await database.execute(sql: SQLRaw("DELETE FROM \(table);")) { _ in }
+		func truncate(in database: any SQLDatabase, name: String) async throws {
+			if !name.contains("test") {
+				fatalError("cannot truncate non-test DB")
+			}
+
+			for table in showTables(in: database, name: name) {
+				try await database.execute(sql: SQLRaw("DELETE FROM \(table);")) { _ in }
+			}
 		}
 	}
-}
 #endif
 
 #if canImport(MySQLKit)
-extension SQLDialect {
-	func showTables(in database: any SQLDatabase, name: String) -> Set<String> {
-		try! Set(database.raw("SHOW TABLES").all().wait().map { try $0.decode(column: "Tables_in_\(name)", as: String.self) })
-	}
-
-	func truncate(in database: any SQLDatabase, name: String) async throws {
-		if !name.contains("test") {
-			fatalError("cannot truncate non-test DB")
+	extension SQLDialect {
+		func showTables(in database: any SQLDatabase, name: String) -> Set<String> {
+			try! Set(database.raw("SHOW TABLES").all().wait().map { try $0.decode(column: "Tables_in_\(name)", as: String.self) })
 		}
 
-		for table in showTables(in: database, name: name) {
-			try await database.execute(sql: SQLRaw("TRUNCATE TABLE \(table);")) { _ in }
+		func truncate(in database: any SQLDatabase, name: String) async throws {
+			if !name.contains("test") {
+				fatalError("cannot truncate non-test DB")
+			}
+
+			for table in showTables(in: database, name: name) {
+				try await database.execute(sql: SQLRaw("TRUNCATE TABLE \(table);")) { _ in }
+			}
 		}
 	}
-}
 #endif
 
 // Wraps the DB.

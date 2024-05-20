@@ -1,5 +1,5 @@
 {
-  "originHash" : "12517cd45f4476ae64b4a5fdec3f921ef893f82920ddea78f8105be4759918db",
+  "originHash" : "c2cc0b6c2bd86493107ab714372b5de749750fece1d63a3e94c7c6f9459394a3",
   "pins" : [
     {
       "identity" : "async-kit",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "7ece208cd401687641c88367a00e3ea2b04311f1",
         "version" : "1.19.0"
+      }
+    },
+    {
+      "identity" : "predicate",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PureSwift/Predicate",
+      "state" : {
+        "branch" : "master",
+        "revision" : "ba07f7523b15ddd0c54ea717b9429ac294d5955b"
       }
     },
     {
