@@ -60,14 +60,14 @@ import XCTest
 
 				extension Person: StorableModel {
 					public static let _$table = "people"
-						public static var _$columns = StorableModelAttributeRegistry<Person>(
-							namesToDefinitions: [
-								"id": ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
-								"age": ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),
-								"name": ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]),
-								"about": ColumnDefinition(name: "about", sqlType: .blob, swiftType: String.self, isOptional: true, constraints: [])
-							],
-							keypathsToNames: [\\Person.id: "id", \\Person.age: "age", \\Person.name: "name", \\Person.about: "about"]
+					public static let _$columns = StorableModelAttributeRegistry<Person>(
+						namesToDefinitions: [
+							"id": ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
+							"age": ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),
+							"name": ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]),
+							"about": ColumnDefinition(name: "about", sqlType: .blob, swiftType: String.self, isOptional: true, constraints: [])
+						],
+						keypathsToNames: [\\Person.id: "id", \\Person.age: "age", \\Person.name: "name", \\Person.about: "about"]
 					)
 				}
 				""",

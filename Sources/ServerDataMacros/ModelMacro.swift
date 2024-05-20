@@ -182,9 +182,9 @@ public struct ModelMacro: ExtensionMacro {
 			"""
 			extension \(type.trimmed): StorableModel {
 				public \(raw: table.description)
-					public static var _$columns = StorableModelAttributeRegistry<\(type.trimmed)>(
-						namesToDefinitions: \(namesToDefinitions),
-						keypathsToNames: \(keypathsToNames))
+				public static let _$columns = StorableModelAttributeRegistry<\(type.trimmed)>(
+					namesToDefinitions: \(namesToDefinitions),
+					keypathsToNames: \(keypathsToNames))
 			}
 			"""
 

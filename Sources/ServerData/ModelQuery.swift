@@ -10,20 +10,39 @@ import SQLKit
 
 // Simple sorting type
 public enum Sort<Model: StorableModel> {
-	case ascending(PartialKeyPath<Model>), descending(PartialKeyPath<Model>)
+	case ascending(PartialKeyPath<Model>),
+	     descending(PartialKeyPath<Model>)
+
+	var column: ColumnDefinition {
+		switch self {
+		case .ascending(let keyPath):
+			Model._$columns.definition(for: keyPath)
+		case .descending(let keyPath):
+			Model._$columns.definition(for: keyPath)
+		}
+	}
+
+	var order: SQLDirection {
+		switch self {
+		case .ascending:
+			.ascending
+		case .descending:
+			.descending
+		}
+	}
 }
 
 // Handle logic of building queries
 struct ModelQuery<Model: StorableModel> {
 	let predicate: SQLPredicate<Model>?
-	let sort: KeyPathComparator<Model>?
+	let sort: Sort<Model>?
 	let limit: Int?
 	let container: Container
 
 	init(
 		container: Container,
 		predicate: SQLPredicate<Model>? = nil,
-		sort: KeyPathComparator<Model>? = nil,
+		sort: Sort<Model>? = nil,
 		limit: Int? = nil
 	) {
 		self.container = container
@@ -47,7 +66,7 @@ struct ModelQuery<Model: StorableModel> {
 		}
 
 		if let sort {
-			query = query.orderBy(Model._$columns.definition(for: sort.keyPath).name, sort.order == .forward ? .ascending : .descending)
+			query = query.orderBy(sort.column.name, sort.order)
 		}
 
 		return try await query.all(decoding: Model.self)

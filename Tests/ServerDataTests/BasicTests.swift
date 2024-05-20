@@ -76,7 +76,7 @@ class BasicTests: XCTestCase {
 		XCTAssertEqual(result1.count, 1)
 		XCTAssertEqual("Pat", result1[0].name)
 
-		let result2 = try await store.first(sort: .init(\.birthday, order: .reverse))
+		let result2 = try await store.first(sort: .descending(\.birthday))
 		XCTAssertEqual("Baby", result2?.name)
 
 		// Make sure .unique is working
