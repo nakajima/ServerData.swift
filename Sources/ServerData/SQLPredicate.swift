@@ -15,6 +15,7 @@ public protocol SQLPredicateExpression {
 	func expression() -> any SQLExpression
 }
 
+// Created by the #SQL macro
 public extension SQLPredicateExpressions {
 	struct Coalesce: SQLPredicateExpression {
 		public var values: [any SQLPredicateExpression]
