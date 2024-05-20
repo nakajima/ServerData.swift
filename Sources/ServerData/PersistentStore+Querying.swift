@@ -21,7 +21,7 @@ public extension PersistentStore {
 	}
 
 	func first(
-		where predicate: Predicate<Model>? = nil,
+		where predicate: SQLPredicate<Model>? = nil,
 		sort: KeyPathComparator<Model>? = nil
 	) async throws -> Model? {
 		try await ModelQuery(
@@ -33,7 +33,7 @@ public extension PersistentStore {
 	}
 
 	func list(
-		where predicate: Predicate<Model>? = nil,
+		where predicate: SQLPredicate<Model>? = nil,
 		sort: KeyPathComparator<Model>? = nil,
 		limit: Int? = nil
 	) async throws -> [Model] {

@@ -28,15 +28,31 @@ class PredicateToSQLTests: XCTestCase {
 	func testBasicEquality() {
 		test(
 			line: #line,
-			#Predicate { $0.name == "Pat" },
+			#SQL { $0.name == "Pat" },
 			"`name` = ?", ["Pat"]
+		)
+	}
+
+	func testBasicColumns() {
+		test(
+			line: #line,
+			#SQL { $0.name == $0.name },
+			"`name` = `name`", []
+		)
+	}
+
+	func testBasicNumbers() {
+		test(
+			line: #line,
+			#SQL { _ in 1 == 1 },
+			"? = ?", [1, 1]
 		)
 	}
 
 	func testNonEquality() {
 		test(
 			line: #line,
-			#Predicate { $0.name != "Pat" },
+			#SQL { $0.name != "Pat" },
 			"`name` <> ?", ["Pat"]
 		)
 	}
@@ -44,7 +60,7 @@ class PredicateToSQLTests: XCTestCase {
 	func testCompound() {
 		test(
 			line: #line,
-			#Predicate { $0.name == "Pat" && $0.name != "Not Pat" },
+			#SQL { $0.name == "Pat" && $0.name != "Not Pat" },
 			"`name` = ? AND `name` <> ?", ["Pat", "Not Pat"]
 		)
 	}
@@ -52,7 +68,7 @@ class PredicateToSQLTests: XCTestCase {
 	func testCompare() {
 		test(
 			line: #line,
-			#Predicate { ($0.id ?? -1) > 0 },
+			#SQL { ($0.id ?? -1) > 0 },
 			"COALESCE(`id`, ?) > ?", [-1, 0]
 		)
 	}
@@ -60,7 +76,7 @@ class PredicateToSQLTests: XCTestCase {
 	func testOr() {
 		test(
 			line: #line,
-			#Predicate { $0.name == "Pat" || $0.name == "Not Pat" },
+			#SQL { $0.name == "Pat" || $0.name == "Not Pat" },
 			"`name` = ? OR `name` = ?", ["Pat", "Not Pat"]
 		)
 	}
@@ -68,7 +84,7 @@ class PredicateToSQLTests: XCTestCase {
 	func testTestNested() {
 		test(
 			line: #line,
-			#Predicate { $0.age > 30 && ($0.name == "Pat" || $0.name == "Not Pat") },
+			#SQL { $0.age > 30 && ($0.name == "Pat" || $0.name == "Not Pat") },
 			"`age` > ? AND `name` = ? OR `name` = ?", [30, "Pat", "Not Pat"]
 		)
 	}
@@ -76,7 +92,7 @@ class PredicateToSQLTests: XCTestCase {
 	func testForceUnwrapColumn() {
 		test(
 			line: #line,
-			#Predicate { $0.id! > 30 },
+			#SQL { $0.id! > 30 },
 			"`id` > ?", [30]
 		)
 	}
@@ -86,23 +102,13 @@ class PredicateToSQLTests: XCTestCase {
 
 		test(
 			line: #line,
-			#Predicate { $0.age > age! },
+			#SQL { $0.age > age! },
 			"`age` > ?", [30]
 		)
 	}
 
-	func test(line: UInt, _ predicate: Predicate<PredicateToSQLModel>, _ expr2: SQLBinaryExpression) {
-		let expr1 = PredicateToSQL(predicate: predicate).expressions()!
-
-		let (sql1, binds1) = database.serialize(expr1)
-		let (sql2, binds2) = database.serialize(expr2)
-
-		XCTAssertEqual(sql1, sql2, line: line)
-		XCTAssertEqual(binds1.debugDescription, binds2.debugDescription, line: line)
-	}
-
-	func test(line: UInt, _ predicate: Predicate<PredicateToSQLModel>, _ sql: String, _ binds: [Any]) {
-		let expr1 = PredicateToSQL(predicate: predicate).expressions()!
+	func test(line: UInt, _ predicate: SQLPredicate<PredicateToSQLModel>, _ sql: String, _ binds: [Any]) {
+		let expr1 = predicate.expression()
 
 		let (sql1, binds1) = database.serialize(expr1)
 
@@ -116,7 +122,7 @@ class PredicateToSQLTests: XCTestCase {
 	// sure they work in whatever dialect
 	func dialectize(sql: String) -> String {
 		var i = 0
-		return sql.replacing(#/\?/#) { match in
+		return sql.replacing(#/\?/#) { _ in
 			i += 1
 			return database.serialize(database.dialect.bindPlaceholder(at: i)).sql
 		}
