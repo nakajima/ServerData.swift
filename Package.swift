@@ -22,7 +22,6 @@ let package = Package(
 		.package(url: "https://github.com/vapor/sql-kit", branch: "main"),
 		.package(url: "https://github.com/vapor/sqlite-kit", branch: "main"),
 		.package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
-		.package(url: "https://github.com/PureSwift/Predicate", branch: "master"),
 	],
 	targets: [
 		.macro(
@@ -39,7 +38,6 @@ let package = Package(
 		.target(
 			name: "ServerData",
 			dependencies: [
-				"Predicate",
 				"ServerDataMacros",
 				.product(name: "SQLKit", package: "sql-kit"),
 			],
