@@ -37,7 +37,7 @@ struct Column: Equatable {
 				columnOptions.constraints.append(
 					.init(name: declName)
 				)
-			} else if let expression = argument.expression.as(LabeledExprSyntax.self) {
+			} else if argument.expression.as(LabeledExprSyntax.self) != nil {
 				guard let label = argument.label?.text, label == "type" else {
 					// TODO: handle
 					continue

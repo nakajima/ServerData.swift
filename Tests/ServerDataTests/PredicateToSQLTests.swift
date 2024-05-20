@@ -12,7 +12,7 @@ import XCTest
 
 // Not worrying about actually creating an underlying DB for this
 // since all we care about is the struct conforming to StorableModel.
-@Model(table: "predicateToSQLModel") struct PredicateToSQLModel {
+@Model(table: "predicateToSQLModel") struct PredicateToSQLModel: Sendable {
 	var id: Int?
 	var name: String
 	var age: Int

@@ -8,9 +8,11 @@
 import Foundation
 import SQLKit
 
-public struct StorableModelAttributeRegistry<Model: StorableModel> {
-	var namesToDefinitions: [String: ColumnDefinition]
-	var keypathsToNames: [PartialKeyPath<Model>: String]
+extension PartialKeyPath: @unchecked Sendable where Root: StorableModel {}
+
+public struct StorableModelAttributeRegistry<Model: StorableModel>: Sendable {
+	let namesToDefinitions: [String: ColumnDefinition]
+	let keypathsToNames: [PartialKeyPath<Model>: String]
 
 	func definition(for name: String) -> ColumnDefinition {
 		namesToDefinitions[name]!

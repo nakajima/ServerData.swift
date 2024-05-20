@@ -198,7 +198,6 @@ public struct SQLMacro: ExpressionMacro {
 		}
 
 		let expression = SQLExpressionMaker(block: blockSyntax, context: context).expression()
-		let indentedExpression = expression
 
 		let result: ExprSyntax = """
 		SQLPredicate(expression:
