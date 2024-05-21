@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import SQLiteKit
 @testable import ServerData
+import SQLiteKit
 import SQLKit
 import XCTest
 
@@ -18,7 +18,7 @@ import XCTest
 	var favoriteColor: String?
 }
 
-extension EventLoopGroupConnectionPool: @unchecked Sendable { }
+extension EventLoopGroupConnectionPool: @unchecked Sendable {}
 
 extension Container {
 	static func test() -> Container {
@@ -68,7 +68,7 @@ class BasicTests: XCTestCase {
 		XCTAssertEqual(count, 2)
 
 		let result1 = try await store.list(
-			where: #Predicate {
+			where: #SQL {
 				$0.name == "Pat"
 			}
 		)
@@ -76,13 +76,13 @@ class BasicTests: XCTestCase {
 		XCTAssertEqual(result1.count, 1)
 		XCTAssertEqual("Pat", result1[0].name)
 
-		let result2 = try await store.first(sort: .init(\.birthday, order: .reverse))
+		let result2 = try await store.first(sort: .descending(\.birthday))
 		XCTAssertEqual("Baby", result2?.name)
 
 		// Make sure .unique is working
 		let pat2 = TestModel(name: "Pat", birthday: Date())
 		try await store.save(pat2)
-		let result3 = try await store.list(where: #Predicate { $0.name == "Pat" })
+		let result3 = try await store.list(where: #SQL { $0.name == "Pat" })
 		XCTAssertEqual(1, result3.count)
 	}
 
@@ -95,7 +95,7 @@ class BasicTests: XCTestCase {
 		try await store.save([a, b, c, d])
 
 		let date = Date()
-		let result = try await store.list(where: #Predicate {
+		let result = try await store.list(where: #SQL {
 			$0.favoriteColor == "green" && $0.birthday > date
 		})
 
@@ -103,7 +103,9 @@ class BasicTests: XCTestCase {
 	}
 
 	func testColumns() async throws {
-		let attributes = TestModel._$columnsByKeyPath
+		let attributes: [PartialKeyPath<TestModel>: ColumnDefinition] = TestModel._$columns.keypathsToNames.reduce(into: [:]) { result, item in
+			result[item.key] = TestModel._$columns.definition(for: item.value)
+		}
 		XCTAssertEqual(
 			attributes[\TestModel.id]!.description,
 			ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []).description
