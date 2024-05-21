@@ -8,6 +8,29 @@
 import Foundation
 import SQLKit
 
+<<<<<<< Updated upstream
+=======
+extension PartialKeyPath: @unchecked Sendable where Root: StorableModel {}
+
+public struct StorableModelAttributeRegistry<Model: StorableModel>: Sendable {
+	let namesToDefinitions: [String: ColumnDefinition]
+	let keypathsToNames: [PartialKeyPath<Model>: String]
+
+	public init(namesToDefinitions: [String : ColumnDefinition], keypathsToNames: [PartialKeyPath<Model> : String]) {
+		self.namesToDefinitions = namesToDefinitions
+		self.keypathsToNames = keypathsToNames
+	}
+
+	func definition(for name: String) -> ColumnDefinition {
+		namesToDefinitions[name]!
+	}
+
+	func definition(for keyPath: PartialKeyPath<Model>) -> ColumnDefinition {
+		namesToDefinitions[keypathsToNames[keyPath]!]!
+	}
+}
+
+>>>>>>> Stashed changes
 // Conformace added by the @Model macro
 public protocol StorableModel: Codable, Sendable {
 	static var _$table: String { get }
