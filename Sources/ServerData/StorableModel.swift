@@ -8,8 +8,7 @@
 import Foundation
 import SQLKit
 
-<<<<<<< Updated upstream
-=======
+
 extension PartialKeyPath: @unchecked Sendable where Root: StorableModel {}
 
 public struct StorableModelAttributeRegistry<Model: StorableModel>: Sendable {
@@ -30,11 +29,10 @@ public struct StorableModelAttributeRegistry<Model: StorableModel>: Sendable {
 	}
 }
 
->>>>>>> Stashed changes
 // Conformace added by the @Model macro
 public protocol StorableModel: Codable, Sendable {
 	static var _$table: String { get }
-	static var _$columnsByKeyPath: [PartialKeyPath<Self>: ColumnDefinition] { get }
+	static var _$columns: StorableModelAttributeRegistry<Self> { get }
 
 	var id: Int? { get set }
 
@@ -50,7 +48,7 @@ public extension StorableModel {
 	static func create(in database: any SQLDatabase) async throws {
 		var creator = database.create(table: _$table)
 
-		for column in _$columnsByKeyPath.values {
+		for column in _$columns.namesToDefinitions.values {
 			var constraints = column.constraints
 
 			if !column.isOptional {

@@ -15,7 +15,7 @@ import XCTest
 #if canImport(ServerDataMacros)
 	import ServerDataMacros
 
-	let testMacros: [String: Macro.Type] = [
+	let testModelMacros: [String: Macro.Type] = [
 		"Model": ModelMacro.self,
 	]
 #endif
@@ -60,17 +60,18 @@ import XCTest
 
 				extension Person: StorableModel {
 					public static let _$table = "people"
-					public static var _$columnsByKeyPath: [PartialKeyPath<Self>: ColumnDefinition] {
-						[
-							\\Person.id: ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
-							\\Person.age: ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),
-							\\Person.name: ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]),
-							\\Person.about: ColumnDefinition(name: "about", sqlType: .blob, swiftType: String.self, isOptional: true, constraints: [])
-						]
-					}
+					public static let _$columns = StorableModelAttributeRegistry<Person>(
+						namesToDefinitions: [
+							"id": ColumnDefinition(name: "id", sqlType: nil, swiftType: Int.self, isOptional: true, constraints: []),
+							"age": ColumnDefinition(name: "age", sqlType: nil, swiftType: Int.self, isOptional: false, constraints: []),
+							"name": ColumnDefinition(name: "name", sqlType: nil, swiftType: String.self, isOptional: false, constraints: [.unique]),
+							"about": ColumnDefinition(name: "about", sqlType: .blob, swiftType: String.self, isOptional: true, constraints: [])
+						],
+						keypathsToNames: [\\Person.id: "id", \\Person.age: "age", \\Person.name: "name", \\Person.about: "about"]
+					)
 				}
 				""",
-				macros: testMacros,
+				macros: testModelMacros,
 				indentationWidth: .tabs(1)
 			)
 		}

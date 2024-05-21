@@ -10,7 +10,7 @@ struct ColumnOptions {
 }
 
 // Keeps track of column information pulled out of the syntax
-struct Column {
+struct Column: Equatable {
 	var name: String
 	var type: String
 	var sqlType: String?
@@ -37,7 +37,7 @@ struct Column {
 				columnOptions.constraints.append(
 					.init(name: declName)
 				)
-			} else if let expression = argument.expression.as(LabeledExprSyntax.self) {
+			} else if argument.expression.as(LabeledExprSyntax.self) != nil {
 				guard let label = argument.label?.text, label == "type" else {
 					// TODO: handle
 					continue
@@ -114,8 +114,8 @@ public struct ModelMacro: ExtensionMacro {
 		var tableName: String? = nil
 		for argument in arguments.children(viewMode: .fixedUp) {
 			guard let labeled = argument.as(LabeledExprSyntax.self),
-						let expression = labeled.expression.as(StringLiteralExprSyntax.self),
-						let name = expression.segments.first?.as(StringSegmentSyntax.self)?.content
+			      let expression = labeled.expression.as(StringLiteralExprSyntax.self),
+			      let name = expression.segments.first?.as(StringSegmentSyntax.self)?.content
 			else {
 				continue
 			}
@@ -153,21 +153,38 @@ public struct ModelMacro: ExtensionMacro {
 		let attributes = Column.extract(from: declaration)
 
 //		let attributeDefinitions: [CodeBlockItemListSyntax] = attributes.map { attribute in
-		let attributeDefinitions: [DictionaryElementSyntax] = attributes.map { attribute in
-			let key: ExprSyntax = "\\\(raw: typeName).\(raw: attribute.name)"
-			let value: ExprSyntax = "ColumnDefinition(name: \(literal: attribute.name), sqlType: \(raw: attribute.sqlType ?? "nil"), swiftType: \(raw: attribute.type).self, isOptional: \(literal: attribute.isOptional), constraints: [\(raw: attribute.constraints.map(\.description).joined(separator: ", "))])"
-			return DictionaryElementSyntax(key: key, value: value)
-		}
+		let namesToDefinitions = DictionaryExprSyntax(
+			content: .elements(DictionaryElementListSyntax {
+				for attribute in attributes {
+					DictionaryElementSyntax(
+						leadingTrivia: .newline,
+						key: ExprSyntax(literal: attribute.name),
+						value: ExprSyntax("ColumnDefinition(name: \(literal: attribute.name), sqlType: \(raw: attribute.sqlType ?? "nil"), swiftType: \(raw: attribute.type).self, isOptional: \(literal: attribute.isOptional), constraints: [\(raw: attribute.constraints.map(\.description).joined(separator: ", "))])"),
+						trailingTrivia: attribute == attributes.last ? .newline : nil
+					)
+				}
+			})
+		)
+
+		let keypathsToNames = DictionaryExprSyntax(
+			content: .elements(DictionaryElementListSyntax {
+				for attribute in attributes {
+					DictionaryElementSyntax(
+						key: ExprSyntax("\\\(raw: typeName).\(raw: attribute.name)"),
+						value: ExprSyntax(literal: attribute.name)
+					)
+				}
+			}),
+			trailingTrivia: .newline
+		)
 
 		let sendableExtension: DeclSyntax =
 			"""
 			extension \(type.trimmed): StorableModel {
 				public \(raw: table.description)
-				public static var _$columnsByKeyPath: [PartialKeyPath<Self>: ColumnDefinition] {
-					[
-						\(raw: attributeDefinitions.map(\.description).joined(separator: ",\n"))
-					]
-				}
+				public static let _$columns = StorableModelAttributeRegistry<\(type.trimmed)>(
+					namesToDefinitions: \(namesToDefinitions),
+					keypathsToNames: \(keypathsToNames))
 			}
 			"""
 
@@ -196,5 +213,6 @@ struct ServerDataMacroPlugin: CompilerPlugin {
 	let providingMacros: [Macro.Type] = [
 		ModelMacro.self,
 		ColumnMacro.self,
+		SQLMacro.self,
 	]
 }

@@ -10,34 +10,39 @@ import SQLKit
 
 // Simple sorting type
 public enum Sort<Model: StorableModel> {
-	case ascending(PartialKeyPath<Model>), descending(PartialKeyPath<Model>)
-}
+	case ascending(PartialKeyPath<Model>),
+	     descending(PartialKeyPath<Model>)
 
-// This is a hack, sure. But I wasn't sure where else to stash column
-// info from the macro and this lets us access column information
-// from within PredicateExpressions when we don't otherwise have
-// access to the Model.
-extension PartialKeyPath where Root: StorableModel {
-	var columnDefinition: ColumnDefinition {
-		guard let columnDef = Root._$columnsByKeyPath[self] else {
-			fatalError("failed to find column definition from keyPath: \(self.debugDescription)")
+	var column: ColumnDefinition {
+		switch self {
+		case .ascending(let keyPath):
+			Model._$columns.definition(for: keyPath)
+		case .descending(let keyPath):
+			Model._$columns.definition(for: keyPath)
 		}
+	}
 
-		return columnDef
+	var order: SQLDirection {
+		switch self {
+		case .ascending:
+			.ascending
+		case .descending:
+			.descending
+		}
 	}
 }
 
 // Handle logic of building queries
 struct ModelQuery<Model: StorableModel> {
-	let predicate: Predicate<Model>?
-	let sort: KeyPathComparator<Model>?
+	let predicate: SQLPredicate<Model>?
+	let sort: Sort<Model>?
 	let limit: Int?
 	let container: Container
 
 	init(
 		container: Container,
-		predicate: Predicate<Model>? = nil,
-		sort: KeyPathComparator<Model>? = nil,
+		predicate: SQLPredicate<Model>? = nil,
+		sort: Sort<Model>? = nil,
 		limit: Int? = nil
 	) {
 		self.container = container
@@ -49,8 +54,8 @@ struct ModelQuery<Model: StorableModel> {
 	func list() async throws -> [Model] {
 		var query = container.database.select().from(Model._$table).columns("*")
 
-		if let predicate, let expression = PredicateToSQL(predicate: predicate).expressions() {
-			query = query.where(expression)
+		if let predicate {
+			query = query.where(predicate.expression())
 		}
 
 		var sqlSerializer = SQLSerializer(database: container.database)
@@ -61,7 +66,7 @@ struct ModelQuery<Model: StorableModel> {
 		}
 
 		if let sort {
-			query = query.orderBy(sort.keyPath.columnDefinition.name, sort.order == .forward ? .ascending : .descending)
+			query = query.orderBy(sort.column.name, sort.order)
 		}
 
 		return try await query.all(decoding: Model.self)
