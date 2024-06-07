@@ -86,6 +86,20 @@ class BasicTests: XCTestCase {
 		XCTAssertEqual(1, result3.count)
 	}
 
+	func testDelete() async throws {
+		let a = TestModel(name: "a", birthday: .distantPast, favoriteColor: "blue")
+		let b = TestModel(name: "b", birthday: Date().addingTimeInterval(-1000), favoriteColor: "blue")
+		let c = TestModel(name: "c", birthday: Date().addingTimeInterval(1000), favoriteColor: "green")
+
+		try await store.save([a, b, c])
+		try await store.delete(where: #SQL { $0.name == "a" })
+
+		let newList = try await store.list()
+		XCTAssertEqual(newList.count, 2)
+
+		XCTAssertEqual(["b", "c"], newList.map(\.name))
+	}
+
 	func testCompoundPredicate() async throws {
 		let a = TestModel(name: "a", birthday: .distantPast, favoriteColor: "blue")
 		let b = TestModel(name: "b", birthday: Date().addingTimeInterval(-1000), favoriteColor: "blue")
