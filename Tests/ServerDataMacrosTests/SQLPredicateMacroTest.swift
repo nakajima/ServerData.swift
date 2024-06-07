@@ -22,6 +22,27 @@ import XCTest
 
 #if canImport(ServerDataMacros)
 	final class SQLPredicateMacroTests: XCTestCase {
+		func testContains() throws {
+			assertMacroExpansion(
+				"""
+				#SQL<Person> {
+					ids.contains($0.id ?? -1)
+				}
+				""",
+				expandedSource: """
+				SQLPredicate(expression:
+					SQLPredicateExpressions.SQLPredicateBinaryExpression(
+						SQLPredicateExpressions.Coalesce(SQLPredicateExpressions.Column("id"), SQLPredicateExpressions.Value(-1)),
+						.in,
+						SQLPredicateExpressions.Value(ids)
+					)
+				)
+				""",
+				macros: testSQLPredicateMacros,
+				indentationWidth: .tabs(1)
+			)
+		}
+
 		func testMacro() throws {
 			assertMacroExpansion(
 				"""
@@ -34,30 +55,38 @@ import XCTest
 					SQLPredicateExpressions.SQLPredicateBinaryExpression(
 						SQLPredicateExpressions.SQLPredicateBinaryExpression(
 							SQLPredicateExpressions.SQLPredicateBinaryExpression(
-								SQLPredicateExpressions.Column("id"),
-								.equal,
-								SQLPredicateExpressions.Value(123)
+								SQLPredicateExpressions.SQLPredicateBinaryExpression(
+									SQLPredicateExpressions.Column("id"),
+									.equal,
+									SQLPredicateExpressions.Value(123)
+								),
+								.and,
+								SQLPredicateExpressions.SQLPredicateBinaryExpression(
+									SQLPredicateExpressions.Column("name"),
+									.notEqual,
+									SQLPredicateExpressions.Value("Pat")
+								)
 							),
-							.and,
+							.or,
 							SQLPredicateExpressions.SQLPredicateBinaryExpression(
-								SQLPredicateExpressions.Column("name"),
-								.notEqual,
-								SQLPredicateExpressions.Value("Pat")
+								SQLPredicateExpressions.SQLPredicateBinaryExpression(
+									SQLPredicateExpressions.Column("age"),
+									.greaterThan,
+									SQLPredicateExpressions.Value(year!)
+								),
+								.and,
+								SQLPredicateExpressions.SQLPredicateBinaryExpression(
+									SQLPredicateExpressions.Coalesce(SQLPredicateExpressions.Column("id"), SQLPredicateExpressions.Value(-1)),
+									.greaterThan,
+									SQLPredicateExpressions.Value(0)
+								)
 							)
 						),
 						.or,
 						SQLPredicateExpressions.SQLPredicateBinaryExpression(
-							SQLPredicateExpressions.SQLPredicateBinaryExpression(
-								SQLPredicateExpressions.Column("age"),
-								.greaterThan,
-								SQLPredicateExpressions.Value(year!)
-							),
-							.and,
-							SQLPredicateExpressions.SQLPredicateBinaryExpression(
-								SQLPredicateExpressions.Coalesce(SQLPredicateExpressions.Column("id"), SQLPredicateExpressions.Value(-1)),
-								.greaterThan,
-								SQLPredicateExpressions.Value(0)
-							)
+							SQLPredicateExpressions.Column("id"),
+							.in,
+							[SQLPredicateExpressions.Value(1), SQLPredicateExpressions.Value(2), SQLPredicateExpressions.Value(3)]
 						)
 					)
 				)

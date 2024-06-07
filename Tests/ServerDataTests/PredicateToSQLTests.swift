@@ -112,20 +112,20 @@ class PredicateToSQLTests: XCTestCase {
 
 		test(
 			line: #line,
-			#SQL { ids.contains($0.id ?? -1) },
-			"`id` IN (?)", [1,2,3]
+			#SQL { ids.contains($0.id!) },
+			"`id` IN ?", [ids]
 		)
 	}
 
-	func test(line: UInt, _ predicate: SQLPredicate<PredicateToSQLModel>, _ sql: String, _ binds: [Any]) {
+	func test(line: UInt, _ predicate: SQLPredicate<PredicateToSQLModel>, _ expectedSQL: String, _ expectedBinds: [Any]) {
 		let expr1 = predicate.expression()
 
-		let (sql1, binds1) = database.serialize(expr1)
+		let (generatedSQL, generatedBinds) = database.serialize(expr1)
 
-		let sql = dialectize(sql: sql)
+		let sql = dialectize(sql: expectedSQL)
 
-		XCTAssertEqual(sql1, sql, line: line)
-		XCTAssertEqual(binds1.debugDescription, binds.debugDescription, line: line)
+		XCTAssertEqual(generatedSQL, sql, line: line)
+		XCTAssertEqual(generatedBinds.debugDescription, expectedBinds.debugDescription, line: line)
 	}
 
 	// I wrote the tests with MySQL syntax so this function is sort of a hack to try to make

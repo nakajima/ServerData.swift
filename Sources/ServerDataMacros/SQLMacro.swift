@@ -53,6 +53,8 @@ struct SQLExpressionMaker {
 			return expression(for: exprSyntax.cast(PrefixOperatorExprSyntax.self))
 		case .functionCallExpr:
 			return expression(for: exprSyntax.cast(FunctionCallExprSyntax.self))
+		case .arrayExpr:
+			return expression(for: exprSyntax.cast(ArrayExprSyntax.self))
 		default:
 			bail("Unhandled expression kind: \(exprSyntax)", at: exprSyntax)
 		}
@@ -115,13 +117,29 @@ struct SQLExpressionMaker {
 		ExprSyntax("SQLPredicateExpressions.Value(\(raw: isNegative ? "-" : "")\(raw: expr.trimmed.description))")
 	}
 
+	func expression(for expr: ArrayExprSyntax) -> any ExprSyntaxProtocol {
+		let elements = expr.elements.map { expression(for: $0.expression).as(ExprSyntax.self)! }
+		
+		return ArrayExprSyntax(expressions: elements)
+	}
+
 	//	Recursively generates something like:
 	//	SQLPredicateExpressions.SQLPredicateBinaryExpression(
 	//		"id",
 	//		.equal,
 	//		123
 	//	)
-	func expression(for expr: InfixOperatorExprSyntax, indent _: Int = 1) -> any ExprSyntaxProtocol {
+	func expression(for expr: InfixOperatorExprSyntax) -> some ExprSyntaxProtocol {
+		let opExpr = expr.operator.cast(BinaryOperatorExprSyntax.self)
+
+		// Special case for "??" since it shouold coalesce
+		if opExpr.operator.tokenKind == .binaryOperator("??") {
+			let lhs = expression(for: expr.leftOperand)
+			let rhs = expression(for: expr.rightOperand)
+
+			return ExprSyntax("SQLPredicateExpressions.Coalesce(\(lhs), \(rhs))")
+		}
+
 		let lhs = expression(for: expr.leftOperand)
 		let op = binaryOperator(for: expr.operator.cast(BinaryOperatorExprSyntax.self))
 		let rhs = expression(for: expr.rightOperand)
@@ -153,7 +171,6 @@ struct SQLExpressionMaker {
 			case "<": ".lessThan"
 			case "<=": ".lessThanOrEqual"
 			case "||": ".or"
-			case "??": ".isNot"
 			default:
 				bail("Unhandled binary operator: \(expr)", at: expr)
 			}
@@ -178,13 +195,74 @@ struct SQLExpressionMaker {
 	}
 
 	func expression(for call: FunctionCallExprSyntax) -> some ExprSyntaxProtocol {
+		func findColumn() -> (any ExprSyntaxProtocol)? {
+			guard let firstArgument = call.arguments.first?.expression else {
+				return nil
+			}
 
-		ExprSyntax("\(raw: "DummyExpression()")")
-		expression(
+			switch firstArgument.kind {
+			case .memberAccessExpr:
+				if case let .identifier(columnName) = firstArgument.cast(MemberAccessExprSyntax.self).declName.baseName.tokenKind {
+					return ExprSyntax("SQLPredicateExpressions.Column(\(literal: columnName))")
+				}
+			case .infixOperatorExpr:
+				let argExpr = firstArgument.cast(InfixOperatorExprSyntax.self)
+				return expression(for: argExpr)
+			default:
+				()
+			}
+
+			return expression(for: firstArgument)
+		}
+
+		func findValue() -> (any ExprSyntaxProtocol)? {
+			switch call.calledExpression.kind {
+			case .memberAccessExpr:
+				let memberExpr = call.calledExpression.cast(MemberAccessExprSyntax.self)
+
+				guard memberExpr.declName.baseName.tokenKind == .identifier("contains") else {
+					context.diagnose(.init(node: memberExpr.declName, message: MacroExpansionErrorMessage("Only contains() functions work right now")))
+					return nil
+				}
+
+				guard let memberExprBase = memberExpr.base else {
+					return nil
+				}
+
+				return expression(for: memberExprBase)
+			default:
+				()
+			}
+
+			return nil
+		}
+
+		let lhs = findColumn()
+		let rhs = findValue()
+
+		if let lhs, let rhs {
+			let op = ExprSyntax(".in")
+
+			let labeledExpr = LabeledExprListSyntax {
+				LabeledExprSyntax(leadingTrivia: "\n", expression: lhs)
+				LabeledExprSyntax(leadingTrivia: "\n", expression: op)
+				LabeledExprSyntax(leadingTrivia: "\n", expression: rhs)
+			}
+
+			let indentedLabeledExpr = Indenter.indent(labeledExpr, indentation: .tab)
+
+			return ExprSyntax(stringLiteral:
+				"""
+				SQLPredicateExpressions.SQLPredicateBinaryExpression(\(indentedLabeledExpr)\n)
+				"""
+			)
+		}
+
+		return ExprSyntax("\(raw: "DummyExpression()")")
 	}
 
 	func expression(for expr: DeclReferenceExprSyntax) -> some ExprSyntaxProtocol {
-		ExprSyntax("SQLPredicateExpressions.Value(\(expr))")
+		ExprSyntax("SQLPredicateExpressions.Value(\(expr.trimmed))")
 	}
 
 	func bail(_ message: String, at node: some SyntaxProtocol) -> Never {
