@@ -66,6 +66,13 @@ struct Column: Equatable {
 				options = extractColumnOptions(from: arguments)
 			}
 
+			if let attribute = decl.attributes.first?.as(AttributeSyntax.self),
+				 let attributeIdentifierToken = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name,
+				 attributeIdentifierToken.tokenKind == .identifier("Transient")
+			{
+				continue
+			}
+
 			guard let firstBinding = decl.bindings.first?.as(PatternBindingSyntax.self) else {
 				continue
 			}
@@ -208,11 +215,23 @@ public struct ColumnMacro: PeerMacro {
 	}
 }
 
+// This macro is just defined so we can have a nicely typed @Transient macro to ignore properties
+public struct TransientMacro: PeerMacro {
+	public static func expansion(
+		of _: AttributeSyntax,
+		providingPeersOf _: some DeclSyntaxProtocol,
+		in _: some MacroExpansionContext
+	) throws -> [DeclSyntax] {
+		[]
+	}
+}
+
 @main
 struct ServerDataMacroPlugin: CompilerPlugin {
 	let providingMacros: [Macro.Type] = [
 		ModelMacro.self,
 		ColumnMacro.self,
+		TransientMacro.self,
 		SQLMacro.self,
 	]
 }

@@ -39,6 +39,9 @@ import XCTest
 
 					// We can store this string as a blob for some reason
 					@Column(type: .blob) public var about: String?
+
+					// This column is ignored by the db
+					@Transient public var place: String?
 				}
 				""",
 				expandedSource: """
@@ -56,6 +59,9 @@ import XCTest
 
 					// We can store this string as a blob for some reason
 					@Column(type: .blob) public var about: String?
+
+					// This column is ignored by the db
+					@Transient public var place: String?
 				}
 
 				extension Person: StorableModel {

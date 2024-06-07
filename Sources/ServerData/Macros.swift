@@ -10,5 +10,8 @@ public macro Model(table: String) = #externalMacro(module: "ServerDataMacros", t
 @attached(peer)
 public macro Column(_ constraints: SQLColumnConstraintAlgorithm..., type: SQLDataType? = nil) = #externalMacro(module: "ServerDataMacros", type: "ColumnMacro")
 
+@attached(peer)
+public macro Transient() = #externalMacro(module: "ServerDataMacros", type: "TransientMacro")
+
 @freestanding(expression)
 public macro SQL<Model: StorableModel>(builder: (Model) -> Bool) -> SQLPredicate<Model> = #externalMacro(module: "ServerDataMacros", type: "SQLMacro")
