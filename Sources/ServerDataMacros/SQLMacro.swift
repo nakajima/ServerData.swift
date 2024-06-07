@@ -51,6 +51,8 @@ struct SQLExpressionMaker {
 			return expression(for: exprSyntax.cast(ForceUnwrapExprSyntax.self))
 		case .prefixOperatorExpr:
 			return expression(for: exprSyntax.cast(PrefixOperatorExprSyntax.self))
+		case .functionCallExpr:
+			return expression(for: exprSyntax.cast(FunctionCallExprSyntax.self))
 		default:
 			bail("Unhandled expression kind: \(exprSyntax)", at: exprSyntax)
 		}
@@ -173,6 +175,12 @@ struct SQLExpressionMaker {
 		default:
 			bail("Unhandled token kind: \(token)", at: token)
 		}
+	}
+
+	func expression(for call: FunctionCallExprSyntax) -> some ExprSyntaxProtocol {
+
+		ExprSyntax("\(raw: "DummyExpression()")")
+		expression(
 	}
 
 	func expression(for expr: DeclReferenceExprSyntax) -> some ExprSyntaxProtocol {

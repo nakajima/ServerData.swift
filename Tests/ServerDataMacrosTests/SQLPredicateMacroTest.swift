@@ -26,7 +26,7 @@ import XCTest
 			assertMacroExpansion(
 				"""
 				#SQL<Person> {
-					$0.id == 123 && $0.name != "Pat" || ($0.age! > year!) && ($0.id ?? -1) > 0
+					$0.id == 123 && $0.name != "Pat" || ($0.age! > year!) && ($0.id ?? -1) > 0 || [1,2,3].contains($0.id)
 				}
 				""",
 				expandedSource: """

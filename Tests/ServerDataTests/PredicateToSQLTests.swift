@@ -107,6 +107,16 @@ class PredicateToSQLTests: XCTestCase {
 		)
 	}
 
+	func testContains() {
+		let ids = [1,2,3]
+
+		test(
+			line: #line,
+			#SQL { ids.contains($0.id ?? -1) },
+			"`id` IN (?)", [1,2,3]
+		)
+	}
+
 	func test(line: UInt, _ predicate: SQLPredicate<PredicateToSQLModel>, _ sql: String, _ binds: [Any]) {
 		let expr1 = predicate.expression()
 

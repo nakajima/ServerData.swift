@@ -11,6 +11,12 @@ import SQLKit
 // Namespace
 public enum SQLPredicateExpressions {}
 
+public struct DummyExpression: SQLPredicateExpression {
+	public func expression() -> any SQLExpression {
+		SQLRaw("nope")
+	}
+}
+
 public protocol SQLPredicateExpression {
 	func expression() -> any SQLExpression
 }
