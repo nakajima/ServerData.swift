@@ -69,6 +69,7 @@ public extension StorableModel {
 				case is any StorableAsText.Type: .text
 				case is any StorableAsData.Type: .blob
 				case is any StorableAsDate.Type: .custom(SQLRaw("DATETIME"))
+				case is any Codable: .blob
 				default:
 					fatalError("cannot represent: \(column.swiftType)")
 				}
