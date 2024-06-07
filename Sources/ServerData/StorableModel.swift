@@ -8,14 +8,13 @@
 import Foundation
 import SQLKit
 
-
 extension PartialKeyPath: @unchecked Sendable where Root: StorableModel {}
 
 public struct StorableModelAttributeRegistry<Model: StorableModel>: Sendable {
 	let namesToDefinitions: [String: ColumnDefinition]
 	let keypathsToNames: [PartialKeyPath<Model>: String]
 
-	public init(namesToDefinitions: [String : ColumnDefinition], keypathsToNames: [PartialKeyPath<Model> : String]) {
+	public init(namesToDefinitions: [String: ColumnDefinition], keypathsToNames: [PartialKeyPath<Model>: String]) {
 		self.namesToDefinitions = namesToDefinitions
 		self.keypathsToNames = keypathsToNames
 	}

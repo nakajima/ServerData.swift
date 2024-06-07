@@ -67,8 +67,8 @@ struct Column: Equatable {
 			}
 
 			if let attribute = decl.attributes.first?.as(AttributeSyntax.self),
-				 let attributeIdentifierToken = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name,
-				 attributeIdentifierToken.tokenKind == .identifier("Transient")
+			   let attributeIdentifierToken = attribute.attributeName.as(IdentifierTypeSyntax.self)?.name,
+			   attributeIdentifierToken.tokenKind == .identifier("Transient")
 			{
 				continue
 			}

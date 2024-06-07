@@ -119,7 +119,7 @@ struct SQLExpressionMaker {
 
 	func expression(for expr: ArrayExprSyntax) -> any ExprSyntaxProtocol {
 		let elements = expr.elements.map { expression(for: $0.expression).as(ExprSyntax.self)! }
-		
+
 		return ArrayExprSyntax(expressions: elements)
 	}
 

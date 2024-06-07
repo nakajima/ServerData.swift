@@ -15,9 +15,9 @@ public enum Sort<Model: StorableModel> {
 
 	var column: ColumnDefinition {
 		switch self {
-		case .ascending(let keyPath):
+		case let .ascending(keyPath):
 			Model._$columns.definition(for: keyPath)
-		case .descending(let keyPath):
+		case let .descending(keyPath):
 			Model._$columns.definition(for: keyPath)
 		}
 	}

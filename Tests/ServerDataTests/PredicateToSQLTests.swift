@@ -108,7 +108,7 @@ class PredicateToSQLTests: XCTestCase {
 	}
 
 	func testContains() {
-		let ids = [1,2,3]
+		let ids = [1, 2, 3]
 
 		test(
 			line: #line,
