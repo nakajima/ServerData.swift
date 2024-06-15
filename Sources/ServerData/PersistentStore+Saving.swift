@@ -70,7 +70,9 @@ public extension PersistentStore {
 
 	private func insertWithLastInsertID(_ model: Model, in database: any SQLDatabase) async throws -> Int? {
 		try await database.insert(into: Model._$table)
-			.ignoringConflicts()
+			.onConflict(with: ["uuid"]) {
+        try $0.set(model: model)
+      }
 			.model(model, with: .init(nilEncodingStrategy: .asNil))
 			.run()
 
@@ -85,7 +87,9 @@ public extension PersistentStore {
 
 	private func insertWithReturning(_ model: Model, in database: any SQLDatabase) async throws -> Int? {
 		return try await database.insert(into: Model._$table)
-			.ignoringConflicts()
+			.onConflict(with: ["uuid"]) {
+        try $0.set(model: model)
+      }
 			.model(model, with: .init(nilEncodingStrategy: .asNil))
 			.returning("id")
 			.first()?
