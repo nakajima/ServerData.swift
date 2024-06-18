@@ -12,11 +12,11 @@ import NIOPosix
 @preconcurrency import SQLKit
 
 extension SQLDialect {
-	func showTables(in database: any SQLDatabase, name _: String) -> Set<String> {
+	func showTables(in database: any SQLDatabase, name _: String) async throws -> Set<String> {
 		#if canImport(SQLiteKit)
-		try! Set(database.select().column("name").from("sqlite_master").where("type", .equal, "table").all().wait().map { try $0.decode(column: "name", as: String.self) })
+		try await Set(database.select().column("name").from("sqlite_master").where("type", .equal, "table").all().get().map { try $0.decode(column: "name", as: String.self) })
 		#elseif canImport(MySQLKit)
-		try! Set(database.raw("SHOW TABLES").all().wait().map { try $0.decode(column: "Tables_in_\(name)", as: String.self) })
+		try await Set(database.raw("SHOW TABLES").all().get().map { try $0.decode(column: "Tables_in_\(database.name)", as: String.self) })
 		#else
 		fatalError("No database adapter found.")
 		#endif
@@ -28,11 +28,11 @@ extension SQLDialect {
 		}
 
 		#if canImport(SQLiteKit)
-		for table in showTables(in: database, name: name) {
+		for table in try await showTables(in: database, name: name) {
 			try await database.execute(sql: SQLRaw("DELETE FROM \(table);")) { _ in }
 		}
 		#elseif canImport(MySQLKit)
-		for table in showTables(in: database, name: name) {
+		for table in try await showTables(in: database, name: name) {
 			try await database.execute(sql: SQLRaw("TRUNCATE TABLE \(table);")) { _ in }
 		}
 		#else
@@ -55,8 +55,8 @@ public actor Container: Sendable {
 		self.shutdown = shutdown
 	}
 
-	public func tables() -> Set<String> {
-		database.dialect.showTables(in: database, name: name)
+	public func tables() async throws -> Set<String> {
+		try await database.dialect.showTables(in: database, name: name)
 	}
 
 	public func truncate() async throws {
@@ -68,7 +68,7 @@ public actor Container: Sendable {
 			fatalError("cannot drop non-test DB")
 		}
 
-		for table in tables() {
+		for table in try await tables() {
 			try await database.drop(table: table).run()
 		}
 	}

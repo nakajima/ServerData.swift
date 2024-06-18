@@ -58,7 +58,7 @@ public extension PersistentStore {
 	}
 
 	private func insert(_ model: Model, in database: any SQLDatabase) async throws -> Int? {
-		let tableExists = await container.tables().contains(Model._$table)
+		let tableExists = try await container.tables().contains(Model._$table)
 		precondition(tableExists, "\(model) not known to database!")
 
 		if database.dialect.supportsReturning {
