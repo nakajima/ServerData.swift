@@ -12,11 +12,11 @@ import NIOPosix
 @preconcurrency import SQLKit
 
 extension SQLDialect {
-	func showTables(in database: any SQLDatabase, name _: String) async throws -> Set<String> {
+	func showTables(in database: any SQLDatabase, name: String) async throws -> Set<String> {
 		#if canImport(SQLiteKit)
 		try await Set(database.select().column("name").from("sqlite_master").where("type", .equal, "table").all().get().map { try $0.decode(column: "name", as: String.self) })
 		#elseif canImport(MySQLKit)
-		try await Set(database.raw("SHOW TABLES").all().get().map { try $0.decode(column: "Tables_in_\(database.name)", as: String.self) })
+		try await Set(database.raw("SHOW TABLES").all().get().map { try $0.decode(column: "Tables_in_\(name)", as: String.self) })
 		#else
 		fatalError("No database adapter found.")
 		#endif
