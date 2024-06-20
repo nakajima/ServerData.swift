@@ -44,9 +44,10 @@ extension SQLDialect {
 // Wraps the DB.
 public actor Container: Sendable {
 	let name: String
-	let database: any SQLDatabase
 	let logger: Logger
 	let shutdown: @Sendable () -> Void
+
+	public let database: any SQLDatabase
 
 	public init(name: String, database: any SQLDatabase, logger: Logger = Logger(label: "ServerData Container"), shutdown: @Sendable @escaping () -> Void) throws {
 		self.name = name
